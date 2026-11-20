@@ -284,7 +284,7 @@
                             </div>
                         </div>
                         
-                        <button type="button" onclick="triggerFileInput()" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-xl shadow-2xs transition active:scale-95 shrink-0">
+                        <button type="button" onclick="triggerFileInput()" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-xl shadow-sm transition active:scale-95 shrink-0">
                             <i data-lucide="image-plus" class="w-3.5 h-3.5"></i>
                             Foto / PDF
                         </button>
@@ -303,15 +303,53 @@
                             <p id="file-size-display" class="text-xs text-slate-500">Pronto para leitura</p>
                         </div>
                     </div>
-                    <button onclick="removeSelectedFile()" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition">
+                    <button type="button" onclick="removeSelectedFile()" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition">
                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                     </button>
+                </div>
+
+                <!-- 2. Sua Tentativa de Resposta + Nível de Confiança -->
+                <div class="p-3.5 rounded-xl bg-indigo-50/50 border border-indigo-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label for="user-attempt-input" class="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                            <i data-lucide="user-check" class="w-4 h-4 text-indigo-600"></i>
+                            2. Sua Tentativa de Resposta (Opcional)
+                        </label>
+                        <span class="text-[11px] text-indigo-600/80">Avalia acerto e confiança</span>
+                    </div>
+
+                    <input type="text" id="user-attempt-input" placeholder="Ex: Letra C, ou 'Certo — porque o prazo é decadencial de 5 anos...'" class="w-full rounded-xl border border-indigo-200/80 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition">
+
+                    <!-- Caixinhas de Autoconfiança -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="attempt-confidence" value="Convicto" checked class="peer sr-only">
+                            <div class="p-2 rounded-xl border border-slate-200 bg-white text-center transition peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900">
+                                <span class="text-xs font-bold block">🎯 Convicto</span>
+                                <span class="text-[10px] text-slate-500 block">Tenho certeza</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="attempt-confidence" value="Impreciso" class="peer sr-only">
+                            <div class="p-2 rounded-xl border border-slate-200 bg-white text-center transition peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-900">
+                                <span class="text-xs font-bold block">🤔 Impreciso</span>
+                                <span class="text-[10px] text-slate-500 block">Em dúvida</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="attempt-confidence" value="Chute" class="peer sr-only">
+                            <div class="p-2 rounded-xl border border-slate-200 bg-white text-center transition peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:text-rose-900">
+                                <span class="text-xs font-bold block">🎲 Chute</span>
+                                <span class="text-[10px] text-slate-500 block">Não sabia</span>
+                            </div>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Botão Analisar -->
                 <button id="btn-analyze" onclick="analyzeQuestion()" class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl shadow-md shadow-slate-200 flex items-center justify-center gap-2 transition active:scale-[0.99]">
                     <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
-                    <span>Analisar Questão com IA</span>
+                    <span>Corrigir e Analisar com IA</span>
                 </button>
             </div>
 
@@ -675,8 +713,8 @@
     </main>
 
     <!-- Modal de Visualização / Edição de Questão Salva -->
-    <div id="question-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up">
+    <div id="question-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden">
             <!-- Header do Modal -->
             <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
                 <div class="min-w-0 pr-3">
@@ -695,7 +733,7 @@
 
             <!-- Corpo Rolável do Modal -->
             <div class="p-5 overflow-y-auto space-y-5 flex-1">
-                <!-- Seção de Anotações no Modal (Destaque no topo para revisão rápida) -->
+                <!-- Seção de Anotações no Modal -->
                 <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-3">
                     <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                         <i data-lucide="highlighter" class="w-3.5 h-3.5 text-indigo-600"></i>
@@ -1114,7 +1152,6 @@
                 let dataUrl = e.target.result;
                 let finalMime = file.type || 'image/jpeg';
 
-                // Comprime fotos pesadas do iPhone/iPad para acelerar o upload e economizar tokens
                 if (finalMime.startsWith('image/')) {
                     dataUrl = await compressImageDataUrl(dataUrl, 1280, 0.82);
                     finalMime = 'image/jpeg';
@@ -1171,6 +1208,11 @@
                 txt.value = '';
                 txt.style.height = '';
             }
+            const attemptEl = document.getElementById('user-attempt-input');
+            if (attemptEl) attemptEl.value = '';
+            const defaultConf = document.querySelector('input[name="attempt-confidence"][value="Convicto"]');
+            if (defaultConf) defaultConf.checked = true;
+
             document.getElementById('result-workspace')?.classList.add('hidden');
             document.getElementById('btn-clear-input')?.classList.add('hidden');
             appState.currentQuestionId = null;
@@ -1200,7 +1242,6 @@
                     throw new Error('A Groq não suporta leitura direta de PDF.');
                 }
 
-                // Fila enxuta de no máximo 2 modelos (evita esperar 15 modelos em loop!)
                 const queue = [];
                 if (fileObj && fileObj.mimeType.startsWith('image/')) {
                     queue.push('meta-llama/llama-4-scout-17b-16e-instruct');
@@ -1290,7 +1331,6 @@
                 }
                 throw lastError || new Error('Falha nos modelos da Groq.');
             } else {
-                // Fila enxuta com modelos ativos do Gemini
                 const queue = [appState.models.gemini];
                 if (appState.models.gemini !== 'gemini-3.5-flash-lite') {
                     queue.push('gemini-3.5-flash-lite');
@@ -1429,6 +1469,9 @@
         // ==========================================
         async function analyzeQuestion() {
             const extraText = (document.getElementById('user-prompt-text')?.value || '').trim();
+            const userAttempt = (document.getElementById('user-attempt-input')?.value || '').trim();
+            const confidenceLevel = document.querySelector('input[name="attempt-confidence"]:checked')?.value || 'Convicto';
+
             if (!appState.currentFile && !extraText) {
                 showToast('Envie uma foto/PDF ou cole o texto da questão.', 'warning');
                 return;
@@ -1446,12 +1489,16 @@
             if (badgeEl) badgeEl.textContent = 'Analisando...';
             if (contentEl) contentEl.innerHTML = '';
 
+            const attemptInstruction = userAttempt
+                ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(O aluno respondeu: "${userAttempt}" marcando o nível de confiança: "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!**, compare a resposta dele com o gabarito oficial e faça uma análise diagnóstica específica considerando que ele estava "${confidenceLevel}" — ex: se errou estando Convicto, alerte sobre o ponto cego; se acertou no Chute, explique a regra para fixar).\n`
+                : '';
+
             const systemPrompt = `Você é um tutor especialista em concursos públicos, focado em aprendizagem visual e altamente escaneável (sem paredões de texto).
 Analise a questão enviada (imagem, PDF ou texto) e responda ESTRITAMENTE nesta estrutura visual em Markdown:
 
 MATERIA: [Disciplina Principal em maiúsculas] - [Tópico Específico]
 RESUMO_ENUNCIADO: [Resumo fiel do enunciado em 1 ou 2 linhas]
-
+${attemptInstruction}
 ### 🎯 Gabarito & Ideia Central
 - **Resposta Correta:** [Letra/Certo ou Errado] — [Explicação direta em 1 frase]
 - **Fluxo Lógico:** \`[Regra Geral]\` ➔ \`[Exceção / Condição]\` ➔ \`[Resultado na Questão]\`
@@ -1466,7 +1513,7 @@ RESUMO_ENUNCIADO: [Resumo fiel do enunciado em 1 ou 2 linhas]
 
 > ⚠️ **Pegadinha de Banca:** [Destaque o detalhe que mais derruba candidatos nesse tema]
 
-${extraText ? `\nObservação/Foco pedido pelo aluno: ${extraText}` : ''}`;
+${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
 
             let streamStarted = false;
             let lastRenderTime = 0;
@@ -1516,6 +1563,8 @@ ${extraText ? `\nObservação/Foco pedido pelo aluno: ${extraText}` : ''}`;
                     date: new Date().toLocaleDateString('pt-BR'),
                     subject: detectedSubject,
                     snippet: questionSnippet,
+                    userAttempt: userAttempt || '',
+                    confidenceLevel: userAttempt ? confidenceLevel : '',
                     analysis: cleanedMarkdown,
                     notes: [],
                     deepStudy: {},
@@ -1537,7 +1586,7 @@ ${extraText ? `\nObservação/Foco pedido pelo aluno: ${extraText}` : ''}`;
                 workspace?.classList.remove('hidden');
                 document.getElementById('btn-clear-input')?.classList.remove('hidden');
                 refreshIcons();
-                showToast('Questão analisada e salva no caderno!', 'success');
+                showToast('Questão corrigida e salva no caderno!', 'success');
 
             } catch (err) {
                 console.error(err);
@@ -1881,7 +1930,6 @@ Responda de forma extremamente VISUAL, didática e escaneável (use tópicos cur
             const subjectSelect = document.getElementById('filter-subject');
             if (!listContainer || !emptyState) return;
 
-            // Estatísticas gerais
             const totalQ = appState.questions.length;
             let highNotesCount = 0;
             const disciplineSet = new Set();
@@ -1900,7 +1948,6 @@ Responda de forma extremamente VISUAL, didática e escaneável (use tópicos cur
             if (statHigh) statHigh.textContent = highNotesCount;
             if (statSubj) statSubj.textContent = disciplineSet.size;
 
-            // Atualizar dropdown de matérias preservando seleção atual
             if (subjectSelect) {
                 const currentVal = subjectSelect.value || 'ALL';
                 subjectSelect.innerHTML = `<option value="ALL">Todas as Matérias (${disciplineSet.size})</option>`;
@@ -1915,7 +1962,6 @@ Responda de forma extremamente VISUAL, didática e escaneável (use tópicos cur
 
             const selectedDiscipline = subjectSelect ? subjectSelect.value : 'ALL';
 
-            // Filtrar questões
             const filtered = appState.questions.filter(q => {
                 const mainDisc = extractMainDiscipline(q.subject);
                 if (selectedDiscipline !== 'ALL' && mainDisc !== selectedDiscipline) return false;
@@ -1933,7 +1979,6 @@ Responda de forma extremamente VISUAL, didática e escaneável (use tópicos cur
             }
             emptyState.classList.add('hidden');
 
-            // Agrupar questões por Disciplina Principal (Pastas)
             const grouped = {};
             filtered.forEach(q => {
                 const disc = extractMainDiscipline(q.subject);
@@ -1991,6 +2036,7 @@ Responda de forma extremamente VISUAL, didática e escaneável (use tópicos cur
                             <div class="flex items-center gap-2 text-slate-500">
                                 <span>${notesCount} anotação(ões)</span>
                                 ${qaCount > 0 ? `<span>• ${qaCount} dúvida(s) IA</span>` : ''}
+                                ${q.confidenceLevel ? `<span>• ${escapeHTML(q.confidenceLevel)}</span>` : ''}
                             </div>
                             <span class="font-bold text-indigo-600">Abrir revisão ›</span>
                         </div>
@@ -2154,6 +2200,9 @@ Responda de forma extremamente VISUAL, didática e escaneável (use tópicos cur
             appState.questions.forEach((q, idx) => {
                 md += `## ${idx + 1}. ${q.subject} (${q.date})\n`;
                 md += `**Enunciado:** ${q.snippet}\n\n`;
+                if (q.userAttempt) {
+                    md += `**Minha Tentativa:** ${q.userAttempt} (${q.confidenceLevel})\n\n`;
+                }
                 if (q.notes && q.notes.length > 0) {
                     md += `### Minhas Anotações\n`;
                     q.notes.forEach(n => {
