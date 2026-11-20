@@ -6,17 +6,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Estudo Ativo">
-    <title>Estudo Ativo - Caderno Inteligente de Questões</title>
+    <title>Estudo Ativo - Caderno Inteligente na Nuvem</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons (UMD bundle confiável) -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <!-- Marked.js para renderizar respostas da IA em Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Fonte Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -26,137 +26,99 @@
             padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
         }
 
-        /* Estilização Visual e Escaneável da Resposta da IA (Estilo Fichamento/Infográfico) */
+        /* Estilização Visual e Escaneável da Resposta da IA (Estilo Fichamento) */
         .prose-study {
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
         }
         .prose-study h1, .prose-study h2, .prose-study h3 {
-            color: #1e1b4b;
-            font-weight: 700;
-            margin-top: 0.75rem;
-            margin-bottom: 0.25rem;
-            font-size: 0.95rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-top: 0.5rem;
+            margin-bottom: 0.15rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.55rem 0.85rem;
-            border-radius: 0.75rem;
-            background: linear-gradient(to right, #eef2ff, #f8fafc);
+            gap: 0.4rem;
+        }
+        .prose-study h3 { 
+            font-size: 0.92rem; 
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #4338ca;
+            background: #eef2ff;
+            padding: 0.45rem 0.75rem;
+            border-radius: 0.65rem;
             border-left: 4px solid #4f46e5;
         }
-        .prose-study h2:first-child, .prose-study h3:first-child {
-            margin-top: 0;
-        }
         .prose-study p {
-            margin-bottom: 0.35rem;
-            line-height: 1.6;
+            margin-bottom: 0.25rem;
+            line-height: 1.55;
             color: #334155;
-            font-size: 0.9rem;
+            font-size: 0.93rem;
         }
         .prose-study ul, .prose-study ol {
-            margin-bottom: 0.5rem;
-            padding-left: 0;
-            list-style: none;
             display: flex;
             flex-direction: column;
             gap: 0.45rem;
+            margin-bottom: 0.25rem;
+            padding-left: 0;
+            list-style: none;
         }
         .prose-study li {
-            position: relative;
-            padding: 0.65rem 0.85rem 0.65rem 2rem;
-            border-radius: 0.75rem;
-            background-color: #f8fafc;
+            background: #f8fafc;
             border: 1px solid #e2e8f0;
-            line-height: 1.55;
-            font-size: 0.88rem;
-            color: #1e293b;
+            border-radius: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            line-height: 1.5;
+            color: #334155;
+            font-size: 0.91rem;
         }
-        .prose-study ul > li::before {
-            content: "▸";
-            position: absolute;
-            left: 0.75rem;
-            top: 0.65rem;
-            color: #4f46e5;
-            font-weight: 800;
+        .prose-study li.opt-correct {
+            background: #f0fdf4;
+            border-color: #86efac;
+            border-left: 4px solid #16a34a;
+            color: #14532d;
         }
-        .prose-study ol {
-            counter-reset: study-counter;
-        }
-        .prose-study ol > li {
-            counter-increment: study-counter;
-        }
-        .prose-study ol > li::before {
-            content: counter(study-counter);
-            position: absolute;
-            left: 0.65rem;
-            top: 0.7rem;
-            width: 1.1rem;
-            height: 1.1rem;
-            border-radius: 9999px;
-            background-color: #e0e7ff;
-            color: #4338ca;
-            font-size: 0.7rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .prose-study li.item-correct {
-            background-color: #ecfdf5;
-            border-color: #a7f3d0;
-            color: #064e3b;
-        }
-        .prose-study li.item-correct::before {
-            content: "✓";
-            color: #059669;
-        }
-        .prose-study li.item-wrong {
-            background-color: #fff1f2;
-            border-color: #fecdd3;
-            color: #881337;
-        }
-        .prose-study li.item-wrong::before {
-            content: "✕";
-            color: #e11d48;
+        .prose-study li.opt-wrong {
+            background: #fef2f2;
+            border-color: #fecaca;
+            border-left: 4px solid #ef4444;
+            color: #7f1d1d;
         }
         .prose-study strong {
             color: #0f172a;
             font-weight: 700;
-            background-color: rgba(224, 231, 255, 0.55);
-            padding: 0.05rem 0.3rem;
-            border-radius: 0.3rem;
         }
         .prose-study blockquote {
             border-left: 4px solid #f59e0b;
-            background-color: #fffbeb;
-            color: #78350f;
-            padding: 0.75rem 0.95rem;
+            background: linear-gradient(to right, #fffbeb, #fef3c7);
+            padding: 0.75rem 0.9rem;
             border-radius: 0.75rem;
             margin: 0.25rem 0;
-            font-size: 0.88rem;
-            box-shadow: 0 1px 2px rgba(245, 158, 11, 0.08);
+            color: #78350f;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
         .prose-study table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            margin: 0.5rem 0;
-            font-size: 0.82rem;
+            margin: 0.25rem 0;
+            font-size: 0.85rem;
+            border: 1px solid #cbd5e1;
             border-radius: 0.75rem;
             overflow: hidden;
-            border: 1px solid #cbd5e1;
         }
         .prose-study th {
             background-color: #1e293b;
             color: #ffffff;
-            font-weight: 600;
+            font-weight: 700;
             text-align: left;
-            padding: 0.55rem 0.75rem;
+            padding: 0.6rem 0.75rem;
         }
         .prose-study td {
-            padding: 0.55rem 0.75rem;
+            padding: 0.6rem 0.75rem;
             border-top: 1px solid #e2e8f0;
             background-color: #ffffff;
             color: #334155;
@@ -165,2082 +127,802 @@
             background-color: #f8fafc;
         }
         .prose-study code {
-            background-color: #f1f5f9;
-            color: #4338ca;
+            background-color: #e0e7ff;
+            color: #3730a3;
             padding: 0.15rem 0.4rem;
-            border-radius: 0.375rem;
-            font-size: 0.82rem;
+            border-radius: 0.35rem;
+            font-size: 0.84em;
             font-weight: 600;
         }
 
-        /* Barra inferior estilo iOS Glassmorphism */
-        .ios-tab-bar {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            padding-bottom: env(safe-area-inset-bottom);
+        /* Estilos dos Flashcards Interativos */
+        .flashcard-item {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .flashcard-item:active {
+            transform: scale(0.99);
         }
 
-        /* Animação suave */
-        .fade-in {
-            animation: fadeIn 0.25s ease-out forwards;
+        /* Safe area para iPhone/iPad */
+        .bottom-nav {
+            padding-bottom: env(safe-area-inset-bottom);
         }
+        
+        /* Animação suave */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .animate-fade-in {
+            animation: fadeIn 0.22s ease-out forwards;
+        }
 
-        /* Ocultar barra de rolagem horizontal em filtros */
+        /* Hide scrollbars cleanly */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Estilos para Flashcards Interativos 3D */
-        .flashcard-perspective { perspective: 1000px; }
-        .flashcard-inner {
-            transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
-            transform-style: preserve-3d;
-        }
-        .flashcard-flipped .flashcard-inner {
-            transform: rotateY(180deg);
-        }
-        .flashcard-face {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-        }
-        .flashcard-back {
-            transform: rotateY(180deg);
-        }
     </style>
 </head>
 <body class="antialiased selection:bg-indigo-100 selection:text-indigo-900">
 
-    <!-- Notificação Toast Customizada (Substitui alert) -->
-    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none flex flex-col gap-2"></div>
+    <!-- MODAL DE BLOQUEIO POR PIN (OPCIONAL) -->
+    <div id="pin-lock-overlay" class="hidden fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm flex items-center justify-center p-6">
+        <div class="bg-white rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h2 class="text-base font-extrabold text-slate-900">Caderno Protegido</h2>
+                <p class="text-xs text-slate-500 mt-1">Digite seu PIN de 4 dígitos para acessar suas chaves e questões.</p>
+            </div>
+            <input type="password" id="pin-unlock-input" maxlength="4" inputmode="numeric" placeholder="••••" oninput="checkPinUnlock()" class="w-full text-center text-2xl font-extrabold tracking-[0.5em] py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none">
+            <p id="pin-error-msg" class="hidden text-xs font-semibold text-rose-600">PIN incorreto. Tente novamente.</p>
+        </div>
+    </div>
 
-    <!-- Cabeçalho Superior Fixo -->
-    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
-        <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+    <!-- HEADER SUPERIOR -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3">
+        <div class="max-w-3xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
                     <i data-lucide="brain-circuit" class="w-5 h-5"></i>
                 </div>
-                <div>
-                    <h1 class="text-sm font-bold text-slate-900 leading-tight">Estudo Ativo</h1>
-                    <p id="header-subtitle" class="text-[11px] text-slate-500 leading-tight">Nova Questão</p>
+                <div class="truncate">
+                    <h1 class="font-bold text-slate-900 text-base leading-tight truncate">Estudo Ativo</h1>
+                    <p class="text-[11px] text-slate-500 font-medium truncate">Nuvem + Estudo Reverso</p>
                 </div>
             </div>
+            
+            <div class="flex items-center gap-1.5 shrink-0">
+                <!-- Status da Nuvem Supabase -->
+                <button id="cloud-status-badge" onclick="syncFromCloud(true)" title="Sincronizar com a Nuvem" class="text-[11px] font-bold px-2 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1 active:scale-95 transition">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> Local
+                </button>
 
-            <!-- Status da API (Alternância rápida entre provedores salvos) -->
-            <button onclick="quickSwitchProviderOrSettings()" id="api-status-badge" title="Toque para alternar provedor ou configurar chaves" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition active:scale-95">
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                <span>Configurar API</span>
-            </button>
+                <!-- Botão de Troca Rápida entre Groq e Gemini -->
+                <button id="api-status-badge" onclick="quickToggleProvider()" title="Toque para alternar entre Groq e Gemini" class="text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 active:scale-95 transition">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Configurar API
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Conteúdo Principal -->
-    <main class="max-w-3xl mx-auto px-4 pt-5">
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="max-w-3xl mx-auto px-4 pt-4">
 
         <!-- ========================================== -->
-        <!-- ABA 1: ESTUDAR NOVA QUESTÃO                -->
+        <!-- ABA 1: ESTUDAR / ANALISAR QUESTÃO          -->
         <!-- ========================================== -->
-        <section id="tab-study" class="fade-in space-y-5">
+        <section id="tab-study" class="space-y-4 animate-fade-in">
             
-            <!-- Card de Entrada de Material -->
-            <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/80 space-y-4">
+            <!-- Card de Entrada da Questão -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 space-y-3.5">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                        <i data-lucide="file-question" class="w-4 h-4 text-indigo-600"></i>
+                    <h2 class="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
+                        <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
                         1. Inserir Questão ou Material
                     </h2>
-                    <button id="btn-clear-input" onclick="resetStudyForm()" class="hidden text-xs font-medium text-slate-400 hover:text-rose-600 transition">
-                        Limpar tudo
+                    <button onclick="resetStudyForm()" id="btn-clear-input" class="hidden text-xs text-slate-400 hover:text-rose-500 font-medium flex items-center gap-1">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i> Limpar
                     </button>
                 </div>
 
-                <!-- Campo Principal de Texto Amplo (Prioridade para colar questões completas) -->
+                <!-- Campo de Texto Principal (Amplo e Auto-expansível) -->
                 <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label for="user-prompt-text" class="block text-xs font-semibold text-slate-700">
-                            Cole o texto completo da questão ou sua dúvida
-                        </label>
-                        <span class="text-[11px] text-slate-400">Expande automaticamente</span>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="user-prompt-text" class="text-xs font-semibold text-slate-600">Cole o texto completo da questão ou sua dúvida</label>
+                        <span class="text-[10px] text-slate-400">Expande automaticamente</span>
                     </div>
-                    <textarea id="user-prompt-text" rows="6" oninput="autoResizeTextarea(this)" placeholder="Cole aqui o enunciado completo e as alternativas (A, B, C, D, E)...&#10;&#10;Ou deixe em branco caso envie uma foto/PDF abaixo." class="w-full min-h-[145px] max-h-[420px] rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-3 text-sm leading-relaxed text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition resize-y"></textarea>
+                    <textarea id="user-prompt-text" rows="6" oninput="autoResizeTextarea(this)" placeholder="Cole aqui o enunciado e as alternativas (A, B, C, D, E ou Certo/Errado)..." class="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm leading-relaxed focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-y min-h-[155px]"></textarea>
                 </div>
 
-                <!-- Barra Compacta de Upload (Câmera / Galeria / PDF) -->
-                <div id="upload-dropzone" class="border border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50/70 rounded-xl px-3.5 py-2.5 transition">
-                    <input type="file" id="file-input" accept="image/*,application/pdf" class="hidden" onchange="handleFileSelect(event)">
-                    
-                    <div class="flex flex-wrap items-center justify-between gap-2.5">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                            <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <!-- Barra Compacta para Foto ou PDF -->
+                <div class="pt-0.5">
+                    <label for="file-upload" id="upload-dropzone" class="flex items-center justify-between w-full px-3.5 py-2.5 border border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50/70 hover:bg-indigo-50/40 hover:border-indigo-400 transition active:scale-[0.99]">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                                 <i data-lucide="camera" class="w-4 h-4"></i>
                             </div>
-                            <div class="min-w-0">
-                                <p class="text-xs font-semibold text-slate-700 truncate">Prefere enviar Foto, Print ou PDF?</p>
-                                <p class="text-[11px] text-slate-400 truncate">Câmera, galeria ou documento PDF</p>
+                            <div>
+                                <p class="text-xs font-bold text-slate-700">Anexar Foto da Questão ou PDF</p>
+                                <p class="text-[10px] text-slate-400">Câmera, print da galeria ou documento PDF</p>
                             </div>
                         </div>
-                        
-                        <button type="button" onclick="triggerFileInput()" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-xl shadow-sm transition active:scale-95 shrink-0">
-                            <i data-lucide="image-plus" class="w-3.5 h-3.5"></i>
-                            Foto / PDF
+                        <span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Selecionar</span>
+                        <input id="file-upload" type="file" accept="image/*,application/pdf" class="hidden" onchange="handleFileSelect(event)" />
+                    </label>
+
+                    <!-- Preview do Arquivo Selecionado -->
+                    <div id="file-preview-box" class="hidden mt-2 relative rounded-xl border border-slate-200 bg-slate-50 p-2.5 flex items-center gap-3">
+                        <img id="image-preview" class="hidden w-14 h-14 object-cover rounded-lg border border-slate-200" alt="Preview">
+                        <div id="pdf-preview-icon" class="hidden w-14 h-14 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="file-text" class="w-7 h-7"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p id="file-name-display" class="text-xs font-bold text-slate-800 truncate">arquivo.jpg</p>
+                            <p id="file-size-display" class="text-[11px] text-slate-500">Pronto para análise</p>
+                        </div>
+                        <button onclick="removeSelectedFile()" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Pré-visualização do Arquivo Selecionado -->
-                <div id="file-preview-box" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        <img id="image-preview-thumb" src="" alt="Preview" class="hidden w-14 h-14 object-cover rounded-lg border border-slate-200 shrink-0">
-                        <div id="pdf-preview-icon" class="hidden w-14 h-14 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-                            <i data-lucide="file-text" class="w-7 h-7"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p id="file-name-display" class="text-sm font-semibold text-slate-800 truncate">arquivo.pdf</p>
-                            <p id="file-size-display" class="text-xs text-slate-500">Pronto para leitura</p>
-                        </div>
-                    </div>
-                    <button type="button" onclick="removeSelectedFile()" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <!-- 2. Sua Tentativa de Resposta + Nível de Confiança -->
-                <div class="p-3.5 rounded-xl bg-indigo-50/50 border border-indigo-100 space-y-3">
+                <!-- 2. Tentativa Ativa de Resposta & Nível de Confiança -->
+                <div class="bg-indigo-50/60 border border-indigo-200/80 rounded-xl p-3 space-y-2.5">
                     <div class="flex items-center justify-between">
                         <label for="user-attempt-input" class="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
-                            <i data-lucide="user-check" class="w-4 h-4 text-indigo-600"></i>
+                            <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-600"></i>
                             2. Sua Tentativa de Resposta (Opcional)
                         </label>
-                        <span class="text-[11px] text-indigo-600/80">Avalia acerto e confiança</span>
+                        <span class="text-[10px] font-medium text-indigo-600">Avalia acerto e confiança</span>
                     </div>
 
-                    <input type="text" id="user-attempt-input" placeholder="Ex: Letra C, ou 'Certo — porque o prazo é decadencial de 5 anos...'" class="w-full rounded-xl border border-indigo-200/80 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition">
+                    <input type="text" id="user-attempt-input" placeholder="Ex: Letra C, ou 'Certo — porque o prazo é decadencial de 5 anos...'" class="w-full rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none">
 
-                    <!-- Caixinhas de Autoconfiança -->
                     <div class="grid grid-cols-3 gap-2">
                         <label class="cursor-pointer">
                             <input type="radio" name="attempt-confidence" value="Convicto" checked class="peer sr-only">
-                            <div class="p-2 rounded-xl border border-slate-200 bg-white text-center transition peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-checked:text-emerald-900">
-                                <span class="text-xs font-bold block">🎯 Convicto</span>
-                                <span class="text-[10px] text-slate-500 block">Tenho certeza</span>
+                            <div class="text-center py-2 px-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition shadow-sm">
+                                <div class="text-xs font-extrabold">🎯 Convicto</div>
+                                <div class="text-[9px] opacity-85">Tenho certeza</div>
                             </div>
                         </label>
                         <label class="cursor-pointer">
                             <input type="radio" name="attempt-confidence" value="Impreciso" class="peer sr-only">
-                            <div class="p-2 rounded-xl border border-slate-200 bg-white text-center transition peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-900">
-                                <span class="text-xs font-bold block">🤔 Impreciso</span>
-                                <span class="text-[10px] text-slate-500 block">Em dúvida</span>
+                            <div class="text-center py-2 px-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 transition shadow-sm">
+                                <div class="text-xs font-extrabold">🤔 Impreciso</div>
+                                <div class="text-[9px] opacity-85">Em dúvida</div>
                             </div>
                         </label>
                         <label class="cursor-pointer">
                             <input type="radio" name="attempt-confidence" value="Chute" class="peer sr-only">
-                            <div class="p-2 rounded-xl border border-slate-200 bg-white text-center transition peer-checked:border-rose-500 peer-checked:bg-rose-50 peer-checked:text-rose-900">
-                                <span class="text-xs font-bold block">🎲 Chute</span>
-                                <span class="text-[10px] text-slate-500 block">Não sabia</span>
+                            <div class="text-center py-2 px-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 transition shadow-sm">
+                                <div class="text-xs font-extrabold">🎲 Chute</div>
+                                <div class="text-[9px] opacity-85">Não sabia</div>
                             </div>
                         </label>
                     </div>
                 </div>
 
-                <!-- Botão Analisar -->
-                <button id="btn-analyze" onclick="analyzeQuestion()" class="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl shadow-md shadow-slate-200 flex items-center justify-center gap-2 transition active:scale-[0.99]">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
+                <!-- Botão Principal -->
+                <button id="btn-analyze" onclick="analyzeQuestion()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
                     <span>Corrigir e Analisar com IA</span>
                 </button>
             </div>
 
             <!-- Estado de Carregamento -->
-            <div id="loading-state" class="hidden bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 text-center space-y-2.5">
-                <div class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-indigo-50 text-indigo-600 animate-pulse">
-                    <i data-lucide="zap" class="w-5 h-5"></i>
+            <div id="loading-state" class="hidden bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
+                <div class="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+                <div>
+                    <p class="text-sm font-semibold text-slate-800">Corrigindo sua resposta...</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Gerando diagnóstico de confiança e esquema visual.</p>
                 </div>
-                <h3 id="loading-status-title" class="text-sm font-semibold text-slate-800">Conectando à IA em alta velocidade...</h3>
-                <p class="text-xs text-slate-500 max-w-xs mx-auto">A resposta começará a aparecer na tela assim que os primeiros tokens chegarem.</p>
             </div>
 
-            <!-- Área de Resultado + Anotações Ativas -->
-            <div id="result-workspace" class="hidden space-y-5 fade-in">
+            <!-- ÁREA DE RESULTADO E ESTUDO ATIVO -->
+            <div id="result-workspace" class="hidden space-y-4 animate-fade-in">
                 
                 <!-- Card da Análise da IA -->
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4">
-                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-bold tracking-wide uppercase" id="detected-subject-badge">
-                                Matéria Detectada
-                            </span>
+                            <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Correção & Esquema</span>
                         </div>
-                        <span class="text-xs text-slate-400 flex items-center gap-1">
-                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-500"></i>
-                            Salvo no caderno
+                        <span id="detected-subject-badge" class="text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">
+                            Geral
                         </span>
                     </div>
-
-                    <!-- Conteúdo Renderizado da IA -->
-                    <div id="ai-response-content" class="prose-study"></div>
+                    
+                    <div id="ai-response-content" class="p-4 prose-study text-sm">
+                        <!-- Conteúdo Markdown renderizado aqui -->
+                    </div>
                 </div>
 
-                <!-- Card: Estação de Aprofundamento Ativo & Tutoria Direcionada -->
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-indigo-200/80 space-y-4">
+                <!-- ESTAÇÃO DE APROFUNDAMENTO ATIVO -->
+                <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 p-4 space-y-3">
                     <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-600"></i>
-                                Estação de Aprofundamento Ativo
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Explore o assunto desta questão com materiais dinâmicos ou tire dúvidas específicas.</p>
-                        </div>
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                            <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
+                            Aprofundar e Fixar Conteúdo
+                        </h3>
+                        <span class="text-[11px] text-slate-400">Sob demanda</span>
                     </div>
-
-                    <!-- Botões de Geração Rápida (Mapa Mental, Flashcards, Questões) -->
+                    
+                    <!-- Botões de Ação Rápida -->
                     <div class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="generateDeepStudy('study', 'mindmap')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-indigo-100 bg-indigo-50/60 hover:bg-indigo-100/70 text-indigo-900 transition active:scale-95">
-                            <i data-lucide="network" class="w-4 h-4 text-indigo-600 mb-1"></i>
-                            <span class="text-xs font-bold">Mapa Mental</span>
-                            <span class="text-[10px] text-indigo-600/80">Esquema visual</span>
+                        <button onclick="generateStudyAsset('mindmap')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 transition active:scale-95">
+                            <i data-lucide="git-fork" class="w-4 h-4 mb-1 text-indigo-600"></i>
+                            <span class="text-[11px] font-semibold">Mapa Mental</span>
                         </button>
-
-                        <button type="button" onclick="generateDeepStudy('study', 'flashcards')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-purple-100 bg-purple-50/60 hover:bg-purple-100/70 text-purple-900 transition active:scale-95">
-                            <i data-lucide="layers" class="w-4 h-4 text-purple-600 mb-1"></i>
-                            <span class="text-xs font-bold">Flashcards</span>
-                            <span class="text-[10px] text-purple-600/80">Virar carta</span>
+                        <button onclick="generateStudyAsset('flashcards')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 transition active:scale-95">
+                            <i data-lucide="copy" class="w-4 h-4 mb-1 text-emerald-600"></i>
+                            <span class="text-[11px] font-semibold">Flashcards</span>
                         </button>
-
-                        <button type="button" onclick="generateDeepStudy('study', 'practice')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-teal-100 bg-teal-50/60 hover:bg-teal-100/70 text-teal-900 transition active:scale-95">
-                            <i data-lucide="file-check-2" class="w-4 h-4 text-teal-600 mb-1"></i>
-                            <span class="text-xs font-bold">+ Questões</span>
-                            <span class="text-[10px] text-teal-600/80">Fixar tema</span>
+                        <button onclick="generateStudyAsset('simulado')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 transition active:scale-95">
+                            <i data-lucide="help-circle" class="w-4 h-4 mb-1 text-amber-600"></i>
+                            <span class="text-[11px] font-semibold">+ Questões</span>
                         </button>
                     </div>
 
-                    <!-- Área de Exibição dos Materiais Gerados (Mapa Mental, Flashcards, Questões) -->
-                    <div id="study-deep-container" class="space-y-3"></div>
-
-                    <!-- Nova Seção: Tutoria Direcionada (Campo de Perguntas Específicas) -->
-                    <div class="pt-3 border-t border-slate-100 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                                <i data-lucide="message-circle-question" class="w-4 h-4 text-indigo-600"></i>
-                                Perguntar ou Aprofundar Tema com a IA
-                            </span>
-                        </div>
-
-                        <!-- Chips Rápidos de Sugestão -->
-                        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                            <button type="button" onclick="askPresetQuestion('study', 'Explique a teoria completa desse assunto passo a passo para concursos.')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200/80 text-[11px] font-medium shrink-0 transition">
-                                📚 Explicar teoria passo a passo
-                            </button>
-                            <button type="button" onclick="askPresetQuestion('study', 'Quais são as principais pegadinhas de banca cobradas sobre esse tema?')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200/80 text-[11px] font-medium shrink-0 transition">
-                                ⚠️ Principais pegadinhas de banca
-                            </button>
-                            <button type="button" onclick="askPresetQuestion('study', 'Crie macetes ou mnemônicos fáceis para eu memorizar essa regra na hora da prova.')" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200/80 text-[11px] font-medium shrink-0 transition">
-                                🧠 Macetes de memorização
+                    <!-- Mini Chat de Dúvidas sobre esta Questão -->
+                    <div class="pt-1">
+                        <div class="flex gap-2">
+                            <input type="text" id="followup-input" placeholder="Ficou com dúvida? Pergunte ao tutor..." class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" onkeypress="if(event.key==='Enter') askFollowup()">
+                            <button onclick="askFollowup()" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
                             </button>
                         </div>
-
-                        <!-- Campo de Pergunta + Botão -->
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <textarea id="study-custom-question-input" rows="2" placeholder="Ex: Me explique melhor Futuro do Presente do Indicativo ou pegadinhas sobre LOA..." class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition resize-none"></textarea>
-                            <button type="button" id="study-btn-ask-ai" onclick="submitCustomQuestion('study')" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-sm flex items-center justify-center gap-1.5 shrink-0 transition active:scale-95">
-                                <i data-lucide="send" class="w-4 h-4"></i>
-                                <span>Perguntar à IA</span>
-                            </button>
-                        </div>
-
-                        <!-- Histórico de Perguntas e Respostas desta Questão -->
-                        <div id="study-custom-qa-list" class="space-y-3"></div>
                     </div>
+
+                    <!-- Área onde aparecem Mapa Mental, Flashcards e Respostas do Tutor -->
+                    <div id="deep-dive-container" class="space-y-3 pt-1"></div>
                 </div>
 
-                <!-- Card de Anotações Inteligentes por Nível de Importância -->
-                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4">
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                            <i data-lucide="highlighter" class="w-4 h-4 text-indigo-600"></i>
-                            Minhas Anotações de Estudo
+                <!-- BLOCO DE ANOTAÇÕES COLORIDAS DO ALUNO -->
+                <div id="personal-note-card" class="rounded-2xl shadow-sm border-2 border-slate-200 bg-white p-4 space-y-3 transition-colors duration-200">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                            <i data-lucide="pen-tool" class="w-4 h-4 text-slate-700"></i>
+                            Minha Anotação de Revisão
                         </h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Registre pegadinhas ou resumos com nível de prioridade para revisar depois.</p>
+                        
+                        <!-- Seletor de Cores de Prioridade -->
+                        <div class="flex items-center gap-1.5" title="Cor de destaque no caderno">
+                            <button onclick="setNoteColor('white')" class="w-6 h-6 rounded-full bg-white border-2 border-slate-300 shadow-xs" title="Padrão"></button>
+                            <button onclick="setNoteColor('amber')" class="w-6 h-6 rounded-full bg-amber-200 border-2 border-amber-400 shadow-xs" title="Atenção / Pegadinha"></button>
+                            <button onclick="setNoteColor('rose')" class="w-6 h-6 rounded-full bg-rose-200 border-2 border-rose-400 shadow-xs" title="Errei / Revisar Urgente"></button>
+                            <button onclick="setNoteColor('emerald')" class="w-6 h-6 rounded-full bg-emerald-200 border-2 border-emerald-400 shadow-xs" title="Dominado / Macete"></button>
+                            <button onclick="setNoteColor('sky')" class="w-6 h-6 rounded-full bg-sky-200 border-2 border-sky-400 shadow-xs" title="Teoria / Jurisprudência"></button>
+                        </div>
                     </div>
 
-                    <!-- Seletor de Estilo / Importância -->
-                    <div class="grid grid-cols-3 gap-2" id="priority-selector">
-                        <button type="button" onclick="selectNotePriority('high')" data-priority="high" class="priority-btn active flex flex-col items-center justify-center p-2.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-800 transition">
-                            <span class="w-3 h-3 rounded-full bg-rose-500 mb-1"></span>
-                            <span class="text-xs font-bold">Muito Importante</span>
-                            <span class="text-[10px] opacity-80">Pegadinha / Cai muito</span>
-                        </button>
-
-                        <button type="button" onclick="selectNotePriority('medium')" data-priority="medium" class="priority-btn flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-amber-50/50 transition">
-                            <span class="w-3 h-3 rounded-full bg-amber-500 mb-1"></span>
-                            <span class="text-xs font-bold">Médio</span>
-                            <span class="text-[10px] opacity-80">Revisar depois</span>
-                        </button>
-
-                        <button type="button" onclick="selectNotePriority('low')" data-priority="low" class="priority-btn flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50/50 transition">
-                            <span class="w-3 h-3 rounded-full bg-emerald-500 mb-1"></span>
-                            <span class="text-xs font-bold">Base / Tranquilo</span>
-                            <span class="text-[10px] opacity-80">Não tão importante</span>
+                    <textarea id="personal-note-text" rows="3" placeholder="Escreva aqui o que você aprendeu com suas próprias palavras, o macete para não cair mais na pegadinha ou o artigo da lei..." class="w-full rounded-xl border border-slate-300/80 bg-white/80 p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+                    
+                    <div class="flex items-center justify-between gap-2">
+                        <input type="text" id="subject-edit-input" placeholder="Matéria (ex: Direito Administrativo)" class="flex-1 rounded-xl border border-slate-300/80 bg-white/80 px-3 py-2 text-xs font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <button onclick="saveCurrentQuestionToNotebook()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="bookmark-check" class="w-4 h-4"></i>
+                            <span>Salvar no Caderno</span>
                         </button>
                     </div>
-
-                    <!-- Input da Anotação -->
-                    <div class="flex flex-col sm:flex-row gap-2">
-                        <textarea id="new-note-text" rows="2" placeholder="Ex: Cuidado! A banca sempre troca 'prazo decadencial' por 'prescricional' nesse artigo..." class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition resize-none"></textarea>
-                        <button type="button" onclick="addNoteToCurrentQuestion()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-sm flex items-center justify-center gap-1.5 shrink-0 transition active:scale-95">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            Anotar
-                        </button>
-                    </div>
-
-                    <!-- Lista de Anotações desta Questão -->
-                    <div id="current-notes-list" class="space-y-2.5 pt-1"></div>
                 </div>
 
             </div>
         </section>
 
         <!-- ========================================== -->
-        <!-- ABA 2: MEU CADERNO / REVISÃO               -->
+        <!-- ABA 2: MEU CADERNO (HISTÓRICO & REVISÃO)   -->
         <!-- ========================================== -->
-        <section id="tab-notebook" class="hidden fade-in space-y-4">
+        <section id="tab-notebook" class="hidden space-y-4 animate-fade-in">
             
-            <!-- Resumo Rápido -->
+            <!-- Estatísticas Rápidas -->
             <div class="grid grid-cols-3 gap-2.5">
-                <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm text-center">
-                    <p id="stat-total-questions" class="text-xl font-bold text-slate-900">0</p>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
+                    <p id="stat-total" class="text-xl font-extrabold text-indigo-600">0</p>
                     <p class="text-[11px] font-medium text-slate-500">Questões</p>
                 </div>
-                <div class="bg-white p-3 rounded-2xl border border-rose-200/80 shadow-sm text-center">
-                    <p id="stat-high-notes" class="text-xl font-bold text-rose-600">0</p>
-                    <p class="text-[11px] font-medium text-rose-700/80">Alertas Vermelhos</p>
-                </div>
-                <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm text-center">
-                    <p id="stat-subjects-count" class="text-xl font-bold text-indigo-600">0</p>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
+                    <p id="stat-subjects" class="text-xl font-extrabold text-slate-800">0</p>
                     <p class="text-[11px] font-medium text-slate-500">Matérias</p>
                 </div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
+                    <p id="stat-urgent" class="text-xl font-extrabold text-rose-600">0</p>
+                    <p class="text-[11px] font-medium text-slate-500">Revisar (Vermelho)</p>
+                </div>
             </div>
 
-            <!-- Filtros -->
-            <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+            <!-- Busca e Filtro por Cor -->
+            <div class="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-2.5">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                    <input type="text" id="notebook-search" oninput="renderNotebook()" placeholder="Buscar por matéria, palavra-chave ou anotação..." class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <i data-lucide="filter" class="w-3.5 h-3.5 text-indigo-600"></i>
-                        Filtrar Revisão
-                    </span>
-                    <select id="filter-subject" onchange="renderNotebook()" class="text-xs font-medium bg-slate-100 text-slate-700 rounded-lg px-2.5 py-1.5 border-none outline-none focus:ring-2 focus:ring-indigo-500 max-w-[180px]">
-                        <option value="ALL">Todas as Matérias</option>
-                    </select>
-                </div>
-
-                <!-- Pílulas de Prioridade -->
-                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                    <button onclick="setPriorityFilter('ALL')" data-filter="ALL" class="filter-pill active px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-white shrink-0 transition">
-                        Todas
-                    </button>
-                    <button onclick="setPriorityFilter('high')" data-filter="high" class="filter-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 shrink-0 transition">
-                        🔴 Muito Importante
-                    </button>
-                    <button onclick="setPriorityFilter('medium')" data-filter="medium" class="filter-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shrink-0 transition">
-                        🟡 Médio
-                    </button>
-                    <button onclick="setPriorityFilter('low')" data-filter="low" class="filter-pill px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 transition">
-                        🟢 Base
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                        <button onclick="filterNotebookColor('all')" data-color-filter="all" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 text-white shrink-0">Todas</button>
+                        <button onclick="filterNotebookColor('rose')" data-color-filter="rose" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-rose-100 text-rose-800 shrink-0">🔴 Urgente</button>
+                        <button onclick="filterNotebookColor('amber')" data-color-filter="amber" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-100 text-amber-800 shrink-0">🟡 Atenção</button>
+                        <button onclick="filterNotebookColor('emerald')" data-color-filter="emerald" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-100 text-emerald-800 shrink-0">🟢 Dominado</button>
+                        <button onclick="filterNotebookColor('sky')" data-color-filter="sky" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-sky-100 text-sky-800 shrink-0">🔵 Teoria</button>
+                    </div>
+                    <button onclick="toggleAllFolders()" id="btn-toggle-folders" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 shrink-0 px-2 py-1 rounded-lg bg-indigo-50">
+                        Expandir Tudo
                     </button>
                 </div>
             </div>
 
-            <!-- Lista Agrupada por Pastas de Matérias -->
-            <div id="notebook-list" class="space-y-3"></div>
-
-            <!-- Estado Vazio do Caderno -->
-            <div id="empty-notebook" class="hidden bg-white rounded-2xl p-8 border border-slate-200/80 text-center space-y-3">
-                <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                    <i data-lucide="book-open" class="w-6 h-6"></i>
-                </div>
-                <h3 class="text-sm font-bold text-slate-800">Nenhuma questão encontrada</h3>
-                <p class="text-xs text-slate-500 max-w-xs mx-auto">Analise sua primeira questão na aba Estudar ou ajuste os filtros acima.</p>
-                <button onclick="switchTab('study')" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl shadow-sm hover:bg-indigo-700 transition">
-                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    Estudar Nova Questão
-                </button>
+            <!-- Lista de Questões Salvas -->
+            <div id="notebook-list" class="space-y-3">
+                <!-- Cards gerados via JS -->
             </div>
         </section>
 
         <!-- ========================================== -->
-        <!-- ABA 3: CONFIGURAÇÕES E BACKUP              -->
+        <!-- ABA 3: AJUSTES, NUVEM & CHAVES DE API      -->
         <!-- ========================================== -->
-        <section id="tab-settings" class="hidden fade-in space-y-5">
-            <!-- Configuração Dupla de Chaves (Gemini + Groq salvos simultaneamente) -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+        <section id="tab-settings" class="hidden space-y-4 animate-fade-in">
+            
+            <!-- Card de Sincronização em Nuvem (Supabase 500 MB) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-indigo-200/80 p-4 space-y-3.5">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="cloud" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-sm">Sincronização em Nuvem (Supabase — 500 MB)</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Sincroniza suas questões automaticamente entre iPhone, iPad e PC sem ocupar espaço no aparelho.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Project URL</label>
+                        <input type="text" id="supabase-url-input" placeholder="https://xxxxxxxxxxxx.supabase.co" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Publishable Key</label>
+                        <input type="password" id="supabase-key-input" placeholder="sb_publishable_..." class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div id="cloud-sync-feedback" class="hidden text-xs font-semibold text-emerald-700"></div>
+                    <button onclick="saveAndConnectCloud()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm flex items-center justify-center gap-1.5 transition">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        <span>Conectar e Sincronizar Nuvem</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ciclo de Arquivamento por Edital / Matéria (Backup Google Drive) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="folder-archive" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-sm">Ciclo de Arquivamento por Matéria (Google Drive)</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Exporte uma disciplina concluída para guardar no seu Google Drive e libere espaço no caderno ativo.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <select id="archive-subject-select" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold bg-white text-slate-800 outline-none">
+                        <option value="">Selecione uma matéria para arquivar...</option>
+                    </select>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="archiveSubjectToDrive()" class="py-2.5 px-3 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar p/ Drive (.md + .json)
+                        </button>
+                        <button onclick="purgeArchivedSubject()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Limpar Matéria da Nuvem
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Chaves de API Duplas -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                         <i data-lucide="key-round" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="text-sm font-bold text-slate-900">Chaves de API (Gemini & Groq)</h2>
-                        <p class="text-xs text-slate-500">Salve as duas chaves no aparelho para alternar com 1 toque se uma atingir o limite.</p>
+                        <h2 class="font-bold text-slate-900 text-sm">Chaves de IA (Gemini & Groq)</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Suas chaves ficam salvas apenas no navegador deste dispositivo (nunca vão para o GitHub).</p>
                     </div>
                 </div>
 
-                <!-- Seletor do Provedor Principal Ativo -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Provedor Principal em Uso</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" id="provider-btn-groq" onclick="selectActiveProvider('groq')" class="py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 text-xs font-bold flex items-center justify-center gap-1.5 transition">
-                            <span>⚡ Groq Cloud</span>
-                            <span id="badge-saved-groq" class="hidden px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px]">Salva</span>
-                        </button>
-                        <button type="button" id="provider-btn-gemini" onclick="selectActiveProvider('gemini')" class="py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition">
-                            <span>✨ Google Gemini</span>
-                            <span id="badge-saved-gemini" class="hidden px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px]">Salva</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Card Chave Groq -->
-                <div class="p-3.5 rounded-xl border border-slate-200/90 bg-slate-50/70 space-y-2.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">⚡ Chave Groq Cloud (<code>gsk_...</code>)</span>
-                        <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-[11px] font-semibold text-indigo-600 hover:underline">Gerar chave ↗</a>
-                    </div>
-                    <div class="relative">
-                        <input type="password" id="groq-key-input" placeholder="gsk_..." class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 pr-10 text-xs sm:text-sm text-slate-800 focus:border-indigo-500 outline-none">
-                        <button type="button" onclick="toggleKeyInput('groq-key-input')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                            <i data-lucide="eye" class="w-4 h-4"></i>
-                        </button>
-                    </div>
+                <div class="space-y-3">
                     <div>
-                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Modelo Groq</label>
-                        <select id="groq-model-select" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 outline-none">
-                            <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (Padrão Rápido)</option>
-                            <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (Alta Capacidade)</option>
-                            <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B (Texto + Imagens)</option>
-                            <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
-                            <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
-                        </select>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Provedor Principal em Uso</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" id="btn-provider-groq" onclick="selectProvider('groq')" class="py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <span>⚡ Groq Cloud</span>
+                                <span id="badge-saved-groq" class="hidden text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">Salva</span>
+                            </button>
+                            <button type="button" id="btn-provider-gemini" onclick="selectProvider('gemini')" class="py-2.5 px-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+                                <span>✨ Google Gemini</span>
+                                <span id="badge-saved-gemini" class="hidden text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">Salva</span>
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- Bloco Groq -->
+                    <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-slate-800">⚡ Chave Groq Cloud (<code class="text-[11px]">gsk_...</code>)</label>
+                            <a href="https://console.groq.com/keys" target="_blank" class="text-[11px] font-semibold text-indigo-600 hover:underline">Gerar chave ↗</a>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="api-key-groq" placeholder="gsk_..." class="w-full rounded-xl border border-slate-300 bg-white pl-3 pr-10 py-2 text-xs font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button type="button" onclick="toggleInputVisibility('api-key-groq')" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Modelo Groq</label>
+                            <select id="model-select-groq" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none">
+                                <option value="openai/gpt-oss-20b" selected>GPT-OSS 20B (Padrão Groq)</option>
+                                <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
+                                <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B (Texto + Fotos)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Bloco Gemini -->
+                    <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-slate-800">✨ Chave Google Gemini (<code class="text-[11px]">AIzaSy...</code>)</label>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] font-semibold text-indigo-600 hover:underline">Gerar chave ↗</a>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="api-key-gemini" placeholder="AIzaSy..." class="w-full rounded-xl border border-slate-300 bg-white pl-3 pr-10 py-2 text-xs font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button type="button" onclick="toggleInputVisibility('api-key-gemini')" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Modelo Gemini (Suporta Texto, Fotos e PDFs)</label>
+                            <select id="model-select-gemini" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none">
+                                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Padrão)</option>
+                                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Mais leve)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Alternância Automática -->
+                    <label class="flex items-center justify-between p-3 rounded-xl border border-indigo-100 bg-indigo-50/50 cursor-pointer">
+                        <div>
+                            <p class="text-xs font-bold text-indigo-950">Alternância Automática (Fallback)</p>
+                            <p class="text-[11px] text-indigo-700/80">Se a IA principal atingir o limite, usa automaticamente a outra chave salva.</p>
+                        </div>
+                        <input type="checkbox" id="auto-fallback-check" checked class="w-4 h-4 accent-indigo-600 rounded">
+                    </label>
+
+                    <div id="provider-save-feedback" class="hidden text-xs font-semibold text-emerald-700 pt-0.5"></div>
+                    <button onclick="saveApiKey()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-xs shadow-sm transition">
+                        Salvar Chaves e Preferências
+                    </button>
                 </div>
-
-                <!-- Card Chave Google Gemini -->
-                <div class="p-3.5 rounded-xl border border-slate-200/90 bg-slate-50/70 space-y-2.5">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">✨ Chave Google Gemini (<code>AIzaSy...</code>)</span>
-                        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="text-[11px] font-semibold text-indigo-600 hover:underline">Gerar chave ↗</a>
-                    </div>
-                    <div class="relative">
-                        <input type="password" id="gemini-key-input" placeholder="AIzaSy..." class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 pr-10 text-xs sm:text-sm text-slate-800 focus:border-indigo-500 outline-none">
-                        <button type="button" onclick="toggleKeyInput('gemini-key-input')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                            <i data-lucide="eye" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Modelo Gemini (Suporta Texto, Fotos e PDFs)</label>
-                        <select id="gemini-model-select" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 outline-none">
-                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Padrão)</option>
-                            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Rápido)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Opção de Fallback Automático entre os Provedores -->
-                <label class="flex items-center justify-between p-3 rounded-xl bg-indigo-50/60 border border-indigo-100 cursor-pointer">
-                    <div class="pr-2">
-                        <span class="text-xs font-bold text-indigo-950 block">Alternância Automática (Fallback)</span>
-                        <span class="text-[11px] text-indigo-700/80">Se a IA principal atingir o limite, usa automaticamente a outra chave salva.</span>
-                    </div>
-                    <input type="checkbox" id="auto-fallback-checkbox" checked class="w-4 h-4 accent-indigo-600 rounded">
-                </label>
-
-                <p id="models-feedback-text" class="text-[11px] text-slate-500">Você pode salvar uma ou ambas as chaves. Dica: toque no selo no topo da tela para alternar entre Groq e Gemini a qualquer momento!</p>
-
-                <button type="button" onclick="saveSettings()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95">
-                    Salvar Chaves e Preferências
-                </button>
             </div>
 
-            <!-- Sincronização Manual (iPhone <-> iPad) -->
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+            <!-- Segurança Local (PIN Opcional) & Backup Geral -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="text-sm font-bold text-slate-900">Backup e Sincronização (iPhone / iPad)</h2>
-                        <p class="text-xs text-slate-500">Exporte seu caderno para abrir no outro aparelho ou salvar no iCloud/Drive.</p>
+                        <h2 class="font-bold text-slate-900 text-sm">Segurança PIN & Backup Completo</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Defina um PIN opcional de 4 dígitos para bloquear o acesso neste aparelho.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <button onclick="exportBackup()" class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-semibold transition">
-                        <i data-lucide="download" class="w-4 h-4 text-indigo-600"></i>
-                        Exportar Caderno (.json)
-                    </button>
+                <div class="flex gap-2">
+                    <input type="password" id="pin-setup-input" maxlength="4" inputmode="numeric" placeholder="PIN (4 dígitos)" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono outline-none">
+                    <button onclick="saveSecurityPin()" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold">Salvar PIN</button>
+                    <button onclick="removeSecurityPin()" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs font-semibold">Remover</button>
+                </div>
 
-                    <label class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-semibold cursor-pointer transition">
-                        <i data-lucide="upload" class="w-4 h-4 text-emerald-600"></i>
-                        Importar Backup (.json)
-                        <input type="file" accept=".json" class="hidden" onchange="importBackup(event)">
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="exportBackupJSON()" class="py-2.5 px-3 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-1.5">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar Tudo (.json)
+                    </button>
+                    <label class="py-2.5 px-3 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar (.json)
+                        <input type="file" accept=".json" class="hidden" onchange="importBackupJSON(event)">
                     </label>
                 </div>
-
-                <button onclick="exportMarkdown()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-800 text-xs font-semibold transition">
-                    <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
-                    Exportar Caderno Completo para Leitura (.md)
+                
+                <button onclick="exportMarkdownNotes()" class="w-full py-2.5 px-3 rounded-xl border border-indigo-200 bg-indigo-50/50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100/70 flex items-center justify-center gap-1.5">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Exportar Caderno Completo para Leitura (.md)
                 </button>
-
-                <button onclick="downloadSelfHTML()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-300 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
-                    <i data-lucide="download-cloud" class="w-4 h-4 text-amber-300"></i>
-                    Baixar Aplicativo Offline (.html) para Safari / Chrome
-                </button>
-            </div>
-
-            <!-- Dica de Instalação no iOS -->
-            <div class="bg-indigo-900 text-white rounded-2xl p-5 shadow-sm space-y-2">
-                <div class="flex items-center gap-2 text-indigo-200 text-xs font-bold uppercase tracking-wider">
-                    <i data-lucide="smartphone" class="w-4 h-4"></i>
-                    Usar como App no iPhone / iPad
-                </div>
-                <p class="text-xs text-indigo-100 leading-relaxed">
-                    Abra este arquivo no <strong>Safari</strong>, toque no ícone de <strong>Compartilhar</strong> (quadrado com seta para cima) e selecione <strong>"Adicionar à Tela de Início"</strong>. Ele funcionará em tela cheia como um aplicativo nativo!
-                </p>
             </div>
 
         </section>
 
     </main>
 
-    <!-- Modal de Visualização / Edição de Questão Salva -->
-    <div id="question-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden">
-            <!-- Header do Modal -->
-            <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-                <div class="min-w-0 pr-3">
-                    <span id="modal-subject" class="inline-block px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700 text-[11px] font-bold uppercase mb-1">Matéria</span>
-                    <h3 id="modal-title" class="text-sm font-bold text-slate-900 truncate">Detalhes da Questão</h3>
-                </div>
-                <div class="flex items-center gap-1.5 shrink-0">
-                    <button onclick="deleteModalQuestion()" class="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition" title="Excluir Questão">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                    </button>
-                    <button onclick="closeQuestionModal()" class="p-2 text-slate-500 hover:text-slate-800 rounded-xl bg-slate-200/70 transition">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Corpo Rolável do Modal -->
-            <div class="p-5 overflow-y-auto space-y-5 flex-1">
-                <!-- Seção de Anotações no Modal -->
-                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-3">
-                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <i data-lucide="highlighter" class="w-3.5 h-3.5 text-indigo-600"></i>
-                        Suas Anotações nesta Questão
-                    </h4>
-                    
-                    <div id="modal-notes-list" class="space-y-2"></div>
-
-                    <!-- Adicionar nova anotação direto no modal -->
-                    <div class="pt-2 border-t border-slate-200/70 space-y-2">
-                        <div class="flex gap-1.5">
-                            <button type="button" onclick="selectModalPriority('high')" data-mpriority="high" class="modal-p-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold border-2 border-rose-500 bg-rose-50 text-rose-800">🔴 Importante</button>
-                            <button type="button" onclick="selectModalPriority('medium')" data-mpriority="medium" class="modal-p-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold border border-slate-200 bg-white text-slate-600">🟡 Médio</button>
-                            <button type="button" onclick="selectModalPriority('low')" data-mpriority="low" class="modal-p-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold border border-slate-200 bg-white text-slate-600">🟢 Base</button>
-                        </div>
-                        <div class="flex gap-2">
-                            <input type="text" id="modal-new-note" placeholder="Adicionar nova anotação..." class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-indigo-500">
-                            <button onclick="addNoteInModal()" class="px-3.5 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition">Salvar</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Estação de Aprofundamento Ativo & Tutoria no Modal -->
-                <div class="bg-indigo-50/40 rounded-2xl p-4 border border-indigo-200/80 space-y-3.5">
-                    <div>
-                        <h4 class="text-xs font-bold text-indigo-950 uppercase tracking-wider flex items-center gap-1.5">
-                            <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-600"></i>
-                            Aprofundamento & Tutoria IA
-                        </h4>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Gere materiais de revisão ou faça perguntas específicas sobre este tema.</p>
-                    </div>
-
-                    <!-- Botões Rápidos no Modal -->
-                    <div class="grid grid-cols-3 gap-2">
-                        <button type="button" onclick="generateDeepStudy('modal', 'mindmap')" class="flex flex-col items-center justify-center p-2 rounded-xl border border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-900 transition active:scale-95">
-                            <i data-lucide="network" class="w-3.5 h-3.5 text-indigo-600 mb-0.5"></i>
-                            <span class="text-[11px] font-bold">Mapa Mental</span>
-                        </button>
-                        <button type="button" onclick="generateDeepStudy('modal', 'flashcards')" class="flex flex-col items-center justify-center p-2 rounded-xl border border-purple-200 bg-white hover:bg-purple-50 text-purple-900 transition active:scale-95">
-                            <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-600 mb-0.5"></i>
-                            <span class="text-[11px] font-bold">Flashcards</span>
-                        </button>
-                        <button type="button" onclick="generateDeepStudy('modal', 'practice')" class="flex flex-col items-center justify-center p-2 rounded-xl border border-teal-200 bg-white hover:bg-teal-50 text-teal-900 transition active:scale-95">
-                            <i data-lucide="file-check-2" class="w-3.5 h-3.5 text-teal-600 mb-0.5"></i>
-                            <span class="text-[11px] font-bold">+ Questões</span>
-                        </button>
-                    </div>
-
-                    <!-- Materiais Gerados no Modal -->
-                    <div id="modal-deep-container" class="space-y-3"></div>
-
-                    <!-- Tutoria Direcionada no Modal -->
-                    <div class="pt-2.5 border-t border-indigo-200/60 space-y-2.5">
-                        <span class="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
-                            <i data-lucide="message-circle-question" class="w-3.5 h-3.5 text-indigo-600"></i>
-                            Tirar Dúvida Específica sobre o Tema
-                        </span>
-
-                        <!-- Chips Rápidos no Modal -->
-                        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                            <button type="button" onclick="askPresetQuestion('modal', 'Explique a teoria completa desse assunto passo a passo para concursos.')" class="px-2.5 py-1 rounded-full bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 text-[10px] font-medium shrink-0 transition">
-                                📚 Explicar teoria passo a passo
-                            </button>
-                            <button type="button" onclick="askPresetQuestion('modal', 'Quais são as principais pegadinhas de banca cobradas sobre esse tema?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 text-[10px] font-medium shrink-0 transition">
-                                ⚠️ Principais pegadinhas
-                            </button>
-                            <button type="button" onclick="askPresetQuestion('modal', 'Crie macetes ou mnemônicos fáceis para eu memorizar essa regra na hora da prova.')" class="px-2.5 py-1 rounded-full bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 text-[10px] font-medium shrink-0 transition">
-                                🧠 Macetes de memorização
-                            </button>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            <textarea id="modal-custom-question-input" rows="2" placeholder="Ex: Me explique melhor Futuro do Presente do Indicativo ou pegadinhas sobre LOA..." class="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 placeholder:text-slate-400 focus:border-indigo-500 outline-none transition resize-none"></textarea>
-                            <button type="button" id="modal-btn-ask-ai" onclick="submitCustomQuestion('modal')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 shrink-0 transition active:scale-95">
-                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
-                                <span>Perguntar à IA</span>
-                            </button>
-                        </div>
-
-                        <!-- Histórico de Dúvidas no Modal -->
-                        <div id="modal-custom-qa-list" class="space-y-2.5"></div>
-                    </div>
-                </div>
-
-                <!-- Explicação Completa da IA -->
-                <div>
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Análise Completa da IA</h4>
-                    <div id="modal-ai-content" class="prose-study"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Barra de Navegação Inferior (Tab Bar estilo iOS) -->
-    <nav class="fixed bottom-0 inset-x-0 z-40 ios-tab-bar border-t border-slate-200/80">
+    <!-- NAVEGAÇÃO INFERIOR FIXA (MOBILE-FIRST) -->
+    <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200">
         <div class="max-w-3xl mx-auto grid grid-cols-3 h-16">
-            <button onclick="switchTab('study')" id="nav-study" class="nav-btn flex flex-col items-center justify-center gap-1 text-indigo-600 transition">
+            <button onclick="switchTab('study')" id="nav-study" class="nav-btn flex flex-col items-center justify-center gap-1 text-indigo-600 font-semibold">
                 <i data-lucide="sparkles" class="w-5 h-5"></i>
-                <span class="text-[11px] font-semibold">Estudar</span>
+                <span class="text-[11px]">Estudar</span>
             </button>
-            <button onclick="switchTab('notebook')" id="nav-notebook" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-600 transition relative">
-                <i data-lucide="book-marked" class="w-5 h-5"></i>
-                <span class="text-[11px] font-medium">Meu Caderno</span>
+            <button onclick="switchTab('notebook')" id="nav-notebook" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-600 font-medium">
+                <div class="relative">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    <span id="nav-badge-count" class="hidden absolute -top-1.5 -right-2.5 bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+                </div>
+                <span class="text-[11px]">Meu Caderno</span>
             </button>
-            <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-600 transition">
-                <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
-                <span class="text-[11px] font-medium">Ajustes</span>
+            <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-600 font-medium">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span class="text-[11px]">Ajustes</span>
             </button>
         </div>
     </nav>
 
+    <!-- TOAST DE NOTIFICAÇÃO -->
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 transition-all max-w-[92vw] text-center">
+        <span id="toast-msg">Mensagem</span>
+    </div>
+
     <script>
         // ==========================================
-        // ESTADO GLOBAL E INICIALIZAÇÃO DO APP
+        // ESTADO GLOBAL DO APLICATIVO
         // ==========================================
-        const appState = {
-            provider: localStorage.getItem('estudo_ativo_provider') || 'groq',
+        const oldProvider = localStorage.getItem('estudo_ai_provider') || 'groq';
+        const oldKey = localStorage.getItem('estudo_gemini_api_key') || '';
+        const oldModel = localStorage.getItem('estudo_gemini_model') || '';
+
+        let savedGroqKey = localStorage.getItem('estudo_key_groq') || (oldProvider === 'groq' && oldKey ? oldKey : '');
+        let savedGeminiKey = localStorage.getItem('estudo_key_gemini') || (oldProvider === 'gemini' && oldKey ? oldKey : '');
+        let savedGroqModel = localStorage.getItem('estudo_model_groq') || (oldProvider === 'groq' && oldModel ? oldModel : 'openai/gpt-oss-20b');
+        let savedGeminiModel = localStorage.getItem('estudo_model_gemini') || (oldProvider === 'gemini' && oldModel ? oldModel : 'gemini-2.5-flash');
+        if (savedGeminiModel === 'gemini-2.5-flash-lite') savedGeminiModel = 'gemini-3.5-flash-lite';
+
+        let appState = {
+            provider: oldProvider,
             keys: {
-                groq: localStorage.getItem('estudo_ativo_groq_key') || '',
-                gemini: localStorage.getItem('estudo_ativo_gemini_key') || localStorage.getItem('estudo_ativo_api_key') || ''
+                groq: savedGroqKey,
+                gemini: savedGeminiKey
             },
             models: {
-                groq: localStorage.getItem('estudo_ativo_groq_model') || 'openai/gpt-oss-20b',
-                gemini: (() => {
-                    const saved = localStorage.getItem('estudo_ativo_gemini_model') || 'gemini-2.5-flash';
-                    return (saved === 'gemini-2.5-flash-lite' || saved === 'gemini-2.0-flash') ? 'gemini-3.5-flash-lite' : saved;
-                })()
+                groq: savedGroqModel,
+                gemini: savedGeminiModel
             },
-            autoFallback: localStorage.getItem('estudo_ativo_autofallback') !== 'false',
-            questions: JSON.parse(localStorage.getItem('estudo_ativo_questions') || '[]'),
+            autoFallback: localStorage.getItem('estudo_auto_fallback') !== 'false',
+            supabaseUrl: localStorage.getItem('estudo_supabase_url') || '',
+            supabaseKey: localStorage.getItem('estudo_supabase_key') || '',
+            cloudConnected: false,
             currentFile: null,
             currentQuestionId: null,
-            selectedPriority: 'high',
-            modalPriority: 'high',
-            filterPriority: 'ALL',
-            activeModalQuestionId: null
+            currentRawAnalysis: '',
+            currentDetectedSubject: 'Geral',
+            currentQuestionSummary: '',
+            currentNoteColor: 'white',
+            deepDiveAssets: [],
+            notebook: JSON.parse(localStorage.getItem('estudo_notebook_v1') || '[]'),
+            colorFilter: 'all',
+            openFolders: JSON.parse(localStorage.getItem('estudo_open_folders') || '{}')
         };
 
-        function refreshIcons() {
-            if (window.lucide && typeof window.lucide.createIcons === 'function') {
-                window.lucide.createIcons();
-            }
-        }
+        // ==========================================
+        // INICIALIZAÇÃO
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            checkInitialPinLock();
 
-        function escapeHTML(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
+            document.getElementById('api-key-groq').value = appState.keys.groq;
+            document.getElementById('api-key-gemini').value = appState.keys.gemini;
+            document.getElementById('model-select-groq').value = appState.models.groq;
+            document.getElementById('model-select-gemini').value = appState.models.gemini;
+            document.getElementById('auto-fallback-check').checked = appState.autoFallback;
+
+            document.getElementById('supabase-url-input').value = appState.supabaseUrl;
+            document.getElementById('supabase-key-input').value = appState.supabaseKey;
+
+            selectProvider(appState.provider, false);
+            updateApiStatusBadge();
+            updateNotebookStats();
+
+            if (appState.supabaseUrl && appState.supabaseKey) {
+                await syncFromCloud(false);
+            }
+        });
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            if (!toast || !toastMsg) return;
+            toastMsg.textContent = msg;
+            toast.classList.remove('hidden', 'bg-slate-900', 'bg-emerald-700', 'bg-rose-700', 'bg-amber-700');
+            if (type === 'success') toast.classList.add('bg-emerald-700');
+            else if (type === 'error') toast.classList.add('bg-rose-700');
+            else if (type === 'warning') toast.classList.add('bg-amber-700');
+            else toast.classList.add('bg-slate-900');
+
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
         }
 
         function autoResizeTextarea(el) {
             if (!el) return;
             el.style.height = 'auto';
-            el.style.height = Math.min(el.scrollHeight, 420) + 'px';
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSettingsToUI();
-            updateApiStatusUI();
-            renderNotebook();
-            refreshIcons();
-        });
-
-        // ==========================================
-        // NAVEGAÇÃO ENTRE ABAS E NOTIFICAÇÕES
-        // ==========================================
-        function switchTab(tabName) {
-            const tabs = ['study', 'notebook', 'settings'];
-            const subtitles = {
-                study: 'Nova Questão',
-                notebook: 'Meu Caderno',
-                settings: 'Ajustes e Backup'
-            };
-
-            tabs.forEach(t => {
-                const section = document.getElementById(`tab-${t}`);
-                const navBtn = document.getElementById(`nav-${t}`);
-                if (section) section.classList.toggle('hidden', t !== tabName);
-                if (navBtn) {
-                    if (t === tabName) {
-                        navBtn.classList.remove('text-slate-400');
-                        navBtn.classList.add('text-indigo-600');
-                    } else {
-                        navBtn.classList.remove('text-indigo-600');
-                        navBtn.classList.add('text-slate-400');
-                    }
-                }
-            });
-
-            const subEl = document.getElementById('header-subtitle');
-            if (subEl) subEl.textContent = subtitles[tabName] || 'Estudo Ativo';
-
-            if (tabName === 'notebook') {
-                renderNotebook();
+            el.style.height = Math.max(155, el.scrollHeight) + 'px';
+            if (el.value.trim()) {
+                document.getElementById('btn-clear-input')?.classList.remove('hidden');
             }
-            refreshIcons();
         }
 
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-
-            const colors = {
-                success: 'bg-emerald-900 text-white border-emerald-700',
-                error: 'bg-rose-900 text-white border-rose-700',
-                warning: 'bg-amber-900 text-white border-amber-700',
-                info: 'bg-slate-900 text-white border-slate-700'
-            };
-
-            const toast = document.createElement('div');
-            toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-lg text-xs font-medium flex items-center justify-between gap-2 fade-in ${colors[type] || colors.info}`;
-            toast.innerHTML = `<span>${escapeHTML(message)}</span>`;
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.25s ease';
-                setTimeout(() => toast.remove(), 260);
-            }, 3400);
+        function escapeHTML(str) {
+            return String(str || '').replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
         }
 
         // ==========================================
-        // CONFIGURAÇÃO DUPLA DE PROVEDORES (GROQ & GEMINI)
+        // SEGURANÇA PIN LOCAL
         // ==========================================
-        function sanitizeKey(raw) {
-            return (raw || '').replace(/[\s"'`]/g, '').trim();
+        function checkInitialPinLock() {
+            const savedPin = localStorage.getItem('estudo_security_pin');
+            if (savedPin && savedPin.length === 4) {
+                document.getElementById('pin-lock-overlay')?.classList.remove('hidden');
+                setTimeout(() => document.getElementById('pin-unlock-input')?.focus(), 100);
+            }
         }
 
-        function selectActiveProvider(provider) {
-            appState.provider = provider;
-            const btnGroq = document.getElementById('provider-btn-groq');
-            const btnGemini = document.getElementById('provider-btn-gemini');
-
-            if (btnGroq && btnGemini) {
-                if (provider === 'groq') {
-                    btnGroq.className = 'py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 text-xs font-bold flex items-center justify-center gap-1.5 transition';
-                    btnGemini.className = 'py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition';
+        function checkPinUnlock() {
+            const input = document.getElementById('pin-unlock-input');
+            const savedPin = localStorage.getItem('estudo_security_pin');
+            if (!input || !savedPin) return;
+            if (input.value.length === 4) {
+                if (input.value === savedPin) {
+                    document.getElementById('pin-lock-overlay')?.classList.add('hidden');
+                    document.getElementById('pin-error-msg')?.classList.add('hidden');
+                    input.value = '';
                 } else {
-                    btnGemini.className = 'py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 text-xs font-bold flex items-center justify-center gap-1.5 transition';
-                    btnGroq.className = 'py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition';
+                    document.getElementById('pin-error-msg')?.classList.remove('hidden');
+                    input.value = '';
                 }
             }
         }
 
-        function toggleKeyInput(inputId) {
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            input.type = input.type === 'password' ? 'text' : 'password';
+        function saveSecurityPin() {
+            const val = (document.getElementById('pin-setup-input')?.value || '').trim();
+            if (!/^\d{4}$/.test(val)) {
+                showToast('Digite exatamente 4 números para o PIN.', 'warning');
+                return;
+            }
+            localStorage.setItem('estudo_security_pin', val);
+            document.getElementById('pin-setup-input').value = '';
+            showToast('PIN de 4 dígitos ativado neste aparelho!', 'success');
         }
 
-        function loadSettingsToUI() {
-            const groqInput = document.getElementById('groq-key-input');
-            const geminiInput = document.getElementById('gemini-key-input');
-            const groqModel = document.getElementById('groq-model-select');
-            const geminiModel = document.getElementById('gemini-model-select');
-            const fallbackChk = document.getElementById('auto-fallback-checkbox');
-
-            if (groqInput) groqInput.value = appState.keys.groq;
-            if (geminiInput) geminiInput.value = appState.keys.gemini;
-            if (groqModel) groqModel.value = appState.models.groq;
-            if (geminiModel) geminiModel.value = appState.models.gemini;
-            if (fallbackChk) fallbackChk.checked = appState.autoFallback;
-
-            selectActiveProvider(appState.provider);
-            updateSavedKeyBadges();
+        function removeSecurityPin() {
+            localStorage.removeItem('estudo_security_pin');
+            showToast('Bloqueio por PIN removido.', 'info');
         }
 
-        function updateSavedKeyBadges() {
-            const bGroq = document.getElementById('badge-saved-groq');
-            const bGemini = document.getElementById('badge-saved-gemini');
-            if (bGroq) bGroq.classList.toggle('hidden', !appState.keys.groq);
-            if (bGemini) bGemini.classList.toggle('hidden', !appState.keys.gemini);
-        }
-
-        function updateApiStatusUI() {
-            const badge = document.getElementById('api-status-badge');
+        // ==========================================
+        // SINCRONIZAÇÃO EM NUVEM (SUPABASE - 500 MB)
+        // ==========================================
+        function updateCloudStatusBadge(status) {
+            const badge = document.getElementById('cloud-status-badge');
             if (!badge) return;
-
-            const hasGroq = Boolean(appState.keys.groq);
-            const hasGemini = Boolean(appState.keys.gemini);
-
-            if (!hasGroq && !hasGemini) {
-                badge.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition active:scale-95';
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Configurar API</span>`;
-                return;
-            }
-
-            if (!appState.keys[appState.provider]) {
-                appState.provider = hasGroq ? 'groq' : 'gemini';
-                localStorage.setItem('estudo_ativo_provider', appState.provider);
-            }
-
-            const bothSaved = hasGroq && hasGemini;
-            const label = appState.provider === 'groq' ? '⚡ Groq' : '✨ Gemini';
-            badge.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 transition active:scale-95';
-            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>${label}${bothSaved ? ' ⇄' : ''}</span>`;
-        }
-
-        function quickSwitchProviderOrSettings() {
-            const hasGroq = Boolean(appState.keys.groq);
-            const hasGemini = Boolean(appState.keys.gemini);
-
-            if (hasGroq && hasGemini) {
-                const next = appState.provider === 'groq' ? 'gemini' : 'groq';
-                appState.provider = next;
-                localStorage.setItem('estudo_ativo_provider', next);
-                selectActiveProvider(next);
-                updateApiStatusUI();
-                showToast(`Alternado para ${next === 'groq' ? 'Groq Cloud' : 'Google Gemini'}!`, 'success');
+            if (status === 'connected') {
+                badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 active:scale-95 transition';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Nuvem OK';
+            } else if (status === 'syncing') {
+                badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span> Sinc...';
+            } else if (status === 'error') {
+                badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1 active:scale-95 transition';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Erro Nuvem';
             } else {
-                switchTab('settings');
+                badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1 active:scale-95 transition';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Local';
             }
         }
 
-        function saveSettings() {
-            const groqKey = sanitizeKey(document.getElementById('groq-key-input')?.value);
-            const geminiKey = sanitizeKey(document.getElementById('gemini-key-input')?.value);
-            const groqModel = document.getElementById('groq-model-select')?.value || 'openai/gpt-oss-20b';
-            const geminiModel = document.getElementById('gemini-model-select')?.value || 'gemini-2.5-flash';
-            const autoFallback = document.getElementById('auto-fallback-checkbox')?.checked ?? true;
-
-            if (!groqKey && !geminiKey) {
-                showToast('Cole pelo menos uma chave (Groq ou Gemini) antes de salvar.', 'warning');
-                return;
-            }
-
-            if (appState.provider === 'gemini' && !geminiKey) {
-                showToast('Cole sua chave AIzaSy... no campo do Google Gemini antes de salvar.', 'warning');
-                return;
-            }
-
-            if (appState.provider === 'groq' && !groqKey) {
-                showToast('Cole sua chave gsk_... no campo da Groq Cloud antes de salvar.', 'warning');
-                return;
-            }
-
-            appState.keys.groq = groqKey;
-            appState.keys.gemini = geminiKey;
-            appState.models.groq = groqModel;
-            appState.models.gemini = geminiModel;
-            appState.autoFallback = autoFallback;
-
-            localStorage.setItem('estudo_ativo_provider', appState.provider);
-            localStorage.setItem('estudo_ativo_groq_key', groqKey);
-            localStorage.setItem('estudo_ativo_gemini_key', geminiKey);
-            localStorage.setItem('estudo_ativo_groq_model', groqModel);
-            localStorage.setItem('estudo_ativo_gemini_model', geminiModel);
-            localStorage.setItem('estudo_ativo_autofallback', String(autoFallback));
-
-            updateSavedKeyBadges();
-            updateApiStatusUI();
-
-            const count = (groqKey ? 1 : 0) + (geminiKey ? 1 : 0);
-            const feedback = document.getElementById('models-feedback-text');
-            if (feedback) {
-                feedback.className = 'text-[11px] font-semibold text-emerald-700';
-                feedback.textContent = `✓ ${count} chave(s) salva(s)! Provedor ativo: ${appState.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini'}.`;
-            }
-
-            showToast('Chaves e preferências salvas!', 'success');
-        }
-
-        // ==========================================
-        // UPLOAD DE IMAGEM / PDF (COM COMPRESSÃO RÁPIDA)
-        // ==========================================
-        function triggerFileInput() {
-            const input = document.getElementById('file-input');
-            if (input) input.click();
-        }
-
-        function compressImageDataUrl(dataUrl, maxDim = 1280, quality = 0.82) {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    let { width, height } = img;
-                    if (width > maxDim || height > maxDim) {
-                        if (width > height) {
-                            height = Math.round((height * maxDim) / width);
-                            width = maxDim;
-                        } else {
-                            width = Math.round((width * maxDim) / height);
-                            height = maxDim;
-                        }
-                    }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedUrl = canvas.toDataURL('image/jpeg', quality);
-                    resolve(compressedUrl);
-                };
-                img.onerror = () => resolve(dataUrl);
-                img.src = dataUrl;
-            });
-        }
-
-        function handleFileSelect(event) {
-            const file = event.target.files?.[0];
-            if (!file) return;
-
-            if (appState.provider === 'groq' && file.type === 'application/pdf') {
-                if (appState.keys.gemini) {
-                    showToast('PDF detectado: usando sua chave Gemini salva automaticamente.', 'info');
-                } else {
-                    showToast('A Groq não lê PDF direto. Use foto/print ou salve uma chave Gemini.', 'warning');
-                }
-            }
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                let dataUrl = e.target.result;
-                let finalMime = file.type || 'image/jpeg';
-
-                if (finalMime.startsWith('image/')) {
-                    dataUrl = await compressImageDataUrl(dataUrl, 1280, 0.82);
-                    finalMime = 'image/jpeg';
-                }
-
-                const base64 = dataUrl.split(',')[1];
-                const approxKB = Math.round((base64.length * 3) / 4 / 1024);
-
-                appState.currentFile = {
-                    base64,
-                    mimeType: finalMime,
-                    name: file.name,
-                    size: approxKB + ' KB'
-                };
-
-                document.getElementById('upload-dropzone')?.classList.add('hidden');
-                document.getElementById('file-preview-box')?.classList.remove('hidden');
-                document.getElementById('btn-clear-input')?.classList.remove('hidden');
-
-                const nameEl = document.getElementById('file-name-display');
-                const sizeEl = document.getElementById('file-size-display');
-                if (nameEl) nameEl.textContent = file.name;
-                if (sizeEl) sizeEl.textContent = `${appState.currentFile.size} (Otimizado) • Pronto`;
-
-                const imgThumb = document.getElementById('image-preview-thumb');
-                const pdfIcon = document.getElementById('pdf-preview-icon');
-                if (finalMime.startsWith('image/')) {
-                    if (imgThumb) {
-                        imgThumb.src = dataUrl;
-                        imgThumb.classList.remove('hidden');
-                    }
-                    pdfIcon?.classList.add('hidden');
-                } else {
-                    imgThumb?.classList.add('hidden');
-                    pdfIcon?.classList.remove('hidden');
-                }
-                refreshIcons();
+        function getSupabaseHeaders() {
+            return {
+                'apikey': appState.supabaseKey,
+                'Authorization': `Bearer ${appState.supabaseKey}`,
+                'Content-Type': 'application/json'
             };
-            reader.readAsDataURL(file);
         }
 
-        function removeSelectedFile() {
-            appState.currentFile = null;
-            const input = document.getElementById('file-input');
-            if (input) input.value = '';
-            document.getElementById('file-preview-box')?.classList.add('hidden');
-            document.getElementById('upload-dropzone')?.classList.remove('hidden');
-        }
+        async function saveAndConnectCloud() {
+            const url = (document.getElementById('supabase-url-input')?.value || '').trim().replace(/\/$/, '');
+            const key = (document.getElementById('supabase-key-input')?.value || '').trim();
+            const fb = document.getElementById('cloud-sync-feedback');
 
-        function resetStudyForm() {
-            removeSelectedFile();
-            const txt = document.getElementById('user-prompt-text');
-            if (txt) {
-                txt.value = '';
-                txt.style.height = '';
+            if (!url || !key) {
+                showToast('Preencha a Project URL e a Publishable Key.', 'warning');
+                return;
             }
-            const attemptEl = document.getElementById('user-attempt-input');
-            if (attemptEl) attemptEl.value = '';
-            const defaultConf = document.querySelector('input[name="attempt-confidence"][value="Convicto"]');
-            if (defaultConf) defaultConf.checked = true;
 
-            document.getElementById('result-workspace')?.classList.add('hidden');
-            document.getElementById('btn-clear-input')?.classList.add('hidden');
-            appState.currentQuestionId = null;
+            appState.supabaseUrl = url;
+            appState.supabaseKey = key;
+            localStorage.setItem('estudo_supabase_url', url);
+            localStorage.setItem('estudo_supabase_key', key);
+
+            const ok = await syncFromCloud(true);
+            if (ok && fb) {
+                fb.textContent = `✓ Conectado ao Supabase! ${appState.notebook.length} questão(ões) sincronizada(s).`;
+                fb.classList.remove('hidden');
+            }
         }
 
-        // ==========================================
-        // CHAMADA RÁPIDA COM STREAMING E TIMEOUT CURTO
-        // ==========================================
-        async function fetchWithTimeout(url, options, timeoutMs = 18000) {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), timeoutMs);
+        async function syncFromCloud(notify = false) {
+            if (!appState.supabaseUrl || !appState.supabaseKey) {
+                if (notify) switchTab('settings');
+                return false;
+            }
+            updateCloudStatusBadge('syncing');
             try {
-                return await fetch(url, { ...options, signal: controller.signal });
-            } finally {
-                clearTimeout(timer);
-            }
-        }
+                const res = await fetch(`${appState.supabaseUrl}/rest/v1/questoes?select=id,data,updated_at`, {
+                    headers: getSupabaseHeaders()
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const remoteRows = await res.json();
 
-        async function callSingleProvider(provider, promptText, fileObj = null, onStreamChunk = null) {
-            const apiKey = appState.keys[provider];
-            if (!apiKey) {
-                throw new Error(`Chave do ${provider === 'groq' ? 'Groq' : 'Gemini'} não configurada.`);
-            }
+                const remoteMap = new Map();
+                remoteRows.forEach(row => {
+                    if (row.data && row.data.id) remoteMap.set(row.data.id, row.data);
+                });
 
-            if (provider === 'groq') {
-                if (fileObj && fileObj.mimeType === 'application/pdf') {
-                    throw new Error('A Groq não suporta leitura direta de PDF.');
-                }
-
-                const queue = [];
-                if (fileObj && fileObj.mimeType.startsWith('image/')) {
-                    queue.push('meta-llama/llama-4-scout-17b-16e-instruct');
-                } else {
-                    queue.push(appState.models.groq);
-                    if (appState.models.groq !== 'llama-3.3-70b-versatile') {
-                        queue.push('llama-3.3-70b-versatile');
+                // Envia para a nuvem questões que só existiam localmente
+                const toUpload = [];
+                appState.notebook.forEach(localItem => {
+                    if (!remoteMap.has(localItem.id)) {
+                        remoteMap.set(localItem.id, localItem);
+                        toUpload.push({
+                            id: localItem.id,
+                            data: localItem,
+                            updated_at: new Date().toISOString()
+                        });
                     }
-                }
+                });
 
-                let lastError = null;
-                for (const modelId of queue) {
-                    const userContent = fileObj && fileObj.mimeType.startsWith('image/')
-                        ? [
-                            { type: 'text', text: promptText },
-                            { type: 'image_url', image_url: { url: `data:${fileObj.mimeType};base64,${fileObj.base64}` } }
-                          ]
-                        : promptText;
-
-                    const useStream = typeof onStreamChunk === 'function';
-
-                    try {
-                        const payload = {
-                            model: modelId,
-                            messages: [{ role: 'user', content: userContent }],
-                            stream: useStream
-                        };
-                        if (!modelId.includes('gpt-oss')) {
-                            payload.temperature = 0.3;
-                        }
-
-                        const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${apiKey}`
-                            },
-                            body: JSON.stringify(payload)
-                        }, 18000);
-
-                        if (!response.ok) {
-                            const errData = await response.json().catch(() => ({}));
-                            const msg = errData?.error?.message || `Erro HTTP ${response.status} na Groq`;
-                            lastError = new Error(msg);
-                            if (response.status === 401) throw lastError;
-                            continue;
-                        }
-
-                        if (useStream && response.body) {
-                            const reader = response.body.getReader();
-                            const decoder = new TextDecoder('utf-8');
-                            let fullText = '';
-                            let buffer = '';
-
-                            while (true) {
-                                const { done, value } = await reader.read();
-                                if (done) break;
-                                buffer += decoder.decode(value, { stream: true });
-                                const lines = buffer.split('\n');
-                                buffer = lines.pop() || '';
-
-                                for (const line of lines) {
-                                    const trimmed = line.trim();
-                                    if (!trimmed.startsWith('data: ')) continue;
-                                    const dataStr = trimmed.slice(6);
-                                    if (dataStr === '[DONE]') continue;
-                                    try {
-                                        const parsed = JSON.parse(dataStr);
-                                        const delta = parsed?.choices?.[0]?.delta?.content || '';
-                                        if (delta) {
-                                            fullText += delta;
-                                            onStreamChunk(fullText);
-                                        }
-                                    } catch (e) {}
-                                }
-                            }
-                            if (fullText) return fullText;
-                        } else {
-                            const data = await response.json();
-                            const text = data?.choices?.[0]?.message?.content;
-                            if (text) return text;
-                        }
-                    } catch (err) {
-                        lastError = err.name === 'AbortError' ? new Error('Tempo limite excedido na Groq.') : err;
-                        if (/invalid api key|401/i.test(lastError.message)) throw lastError;
-                    }
-                }
-                throw lastError || new Error('Falha nos modelos da Groq.');
-            } else {
-                const queue = [appState.models.gemini];
-                if (appState.models.gemini !== 'gemini-3.5-flash-lite') {
-                    queue.push('gemini-3.5-flash-lite');
-                }
-                if (!queue.includes('gemini-2.5-flash')) {
-                    queue.push('gemini-2.5-flash');
-                }
-
-                const parts = [{ text: promptText }];
-                if (fileObj) {
-                    parts.push({
-                        inline_data: {
-                            mime_type: fileObj.mimeType,
-                            data: fileObj.base64
-                        }
+                if (toUpload.length > 0) {
+                    await fetch(`${appState.supabaseUrl}/rest/v1/questoes`, {
+                        method: 'POST',
+                        headers: { ...getSupabaseHeaders(), 'Prefer': 'resolution=merge-duplicates' },
+                        body: JSON.stringify(toUpload)
                     });
                 }
 
-                const useStream = typeof onStreamChunk === 'function';
-                const endpointAction = useStream ? 'streamGenerateContent?alt=sse&' : 'generateContent?';
-
-                let lastError = null;
-                for (const modelId of queue) {
-                    try {
-                        const response = await fetchWithTimeout(
-                            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelId)}:${endpointAction}key=${encodeURIComponent(apiKey)}`,
-                            {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    contents: [{ parts }],
-                                    generationConfig: { temperature: 0.3 }
-                                })
-                            },
-                            22000
-                        );
-
-                        if (!response.ok) {
-                            const errData = await response.json().catch(() => ({}));
-                            const msg = errData?.error?.message || `Erro HTTP ${response.status} no Gemini`;
-                            lastError = new Error(msg);
-                            if (response.status === 400 && /API key not valid/i.test(msg)) throw lastError;
-                            continue;
-                        }
-
-                        if (useStream && response.body) {
-                            const reader = response.body.getReader();
-                            const decoder = new TextDecoder('utf-8');
-                            let fullText = '';
-                            let buffer = '';
-
-                            while (true) {
-                                const { done, value } = await reader.read();
-                                if (done) break;
-                                buffer += decoder.decode(value, { stream: true });
-                                const lines = buffer.split('\n');
-                                buffer = lines.pop() || '';
-
-                                for (const line of lines) {
-                                    const trimmed = line.trim();
-                                    if (!trimmed.startsWith('data: ')) continue;
-                                    try {
-                                        const parsed = JSON.parse(trimmed.slice(6));
-                                        const chunk = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                                        if (chunk) {
-                                            fullText += chunk;
-                                            onStreamChunk(fullText);
-                                        }
-                                    } catch (e) {}
-                                }
-                            }
-                            if (fullText) return fullText;
-                        } else {
-                            const data = await response.json();
-                            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                            if (text) return text;
-                        }
-                    } catch (err) {
-                        lastError = err.name === 'AbortError' ? new Error('Tempo limite excedido no Gemini.') : err;
-                        if (/API key not valid/i.test(lastError.message)) throw lastError;
-                    }
-                }
-                throw lastError || new Error('Falha nos modelos do Gemini.');
-            }
-        }
-
-        async function callAIWithRetry(promptText, fileObj = null, onStreamChunk = null) {
-            if (!appState.keys.groq && !appState.keys.gemini) {
-                switchTab('settings');
-                throw new Error('Configure pelo menos uma chave de API (Groq ou Gemini).');
-            }
-
-            let primary = appState.provider;
-            if (fileObj && fileObj.mimeType === 'application/pdf' && appState.keys.gemini) {
-                primary = 'gemini';
-            } else if (!appState.keys[primary]) {
-                primary = appState.keys.groq ? 'groq' : 'gemini';
-            }
-
-            const secondary = primary === 'groq' ? 'gemini' : 'groq';
-
-            try {
-                return await callSingleProvider(primary, promptText, fileObj, onStreamChunk);
-            } catch (primaryErr) {
-                if (appState.autoFallback && appState.keys[secondary]) {
-                    showToast(`${primary === 'groq' ? 'Groq' : 'Gemini'} demorou/atingiu limite. Alternando para ${secondary === 'groq' ? 'Groq' : 'Gemini'}...`, 'warning');
-                    return await callSingleProvider(secondary, promptText, fileObj, onStreamChunk);
-                }
-                throw primaryErr;
-            }
-        }
-
-        // ==========================================
-        // RENDERIZAÇÃO VISUAL E ESCANEÁVEL (FICHAMENTO)
-        // ==========================================
-        function renderVisualStudyHTML(markdownText) {
-            if (!markdownText) return '';
-            const rawHtml = window.marked ? marked.parse(markdownText) : `<p>${escapeHTML(markdownText)}</p>`;
-            const temp = document.createElement('div');
-            temp.innerHTML = rawHtml;
-
-            temp.querySelectorAll('li').forEach(li => {
-                const txt = li.textContent.trim();
-                if (/^(✅|\[C\]|\(C\)|CORRETO|CERTA)/i.test(txt)) {
-                    li.classList.add('item-correct');
-                } else if (/^(❌|\[E\]|\(E\)|ERRADO|INCORRETA)/i.test(txt)) {
-                    li.classList.add('item-wrong');
-                }
-            });
-
-            return temp.innerHTML;
-        }
-
-        // ==========================================
-        // ANÁLISE DA QUESTÃO PRINCIPAL (COM STREAMING AO VIVO)
-        // ==========================================
-        async function analyzeQuestion() {
-            const extraText = (document.getElementById('user-prompt-text')?.value || '').trim();
-            const userAttempt = (document.getElementById('user-attempt-input')?.value || '').trim();
-            const confidenceLevel = document.querySelector('input[name="attempt-confidence"]:checked')?.value || 'Convicto';
-
-            if (!appState.currentFile && !extraText) {
-                showToast('Envie uma foto/PDF ou cole o texto da questão.', 'warning');
-                return;
-            }
-
-            const btn = document.getElementById('btn-analyze');
-            const loading = document.getElementById('loading-state');
-            const workspace = document.getElementById('result-workspace');
-            const badgeEl = document.getElementById('detected-subject-badge');
-            const contentEl = document.getElementById('ai-response-content');
-
-            if (btn) btn.disabled = true;
-            loading?.classList.remove('hidden');
-            workspace?.classList.add('hidden');
-            if (badgeEl) badgeEl.textContent = 'Analisando...';
-            if (contentEl) contentEl.innerHTML = '';
-
-            const attemptInstruction = userAttempt
-                ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(O aluno respondeu: "${userAttempt}" marcando o nível de confiança: "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!**, compare a resposta dele com o gabarito oficial e faça uma análise diagnóstica específica considerando que ele estava "${confidenceLevel}" — ex: se errou estando Convicto, alerte sobre o ponto cego; se acertou no Chute, explique a regra para fixar).\n`
-                : '';
-
-            const systemPrompt = `Você é um tutor especialista em concursos públicos, focado em aprendizagem visual e altamente escaneável (sem paredões de texto).
-Analise a questão enviada (imagem, PDF ou texto) e responda ESTRITAMENTE nesta estrutura visual em Markdown:
-
-MATERIA: [Disciplina Principal em maiúsculas] - [Tópico Específico]
-RESUMO_ENUNCIADO: [Resumo fiel do enunciado em 1 ou 2 linhas]
-${attemptInstruction}
-### 🎯 Gabarito & Ideia Central
-- **Resposta Correta:** [Letra/Certo ou Errado] — [Explicação direta em 1 frase]
-- **Fluxo Lógico:** \`[Regra Geral]\` ➔ \`[Exceção / Condição]\` ➔ \`[Resultado na Questão]\`
-
-### 🔍 Raio-X das Alternativas
-(Liste cada alternativa ou item começando exatamente com ✅ para a correta ou ❌ para as incorretas, explicando de forma objetiva o porquê)
-- ✅ **Item Correto:** ...
-- ❌ **Item Incorreto:** ...
-
-### 📊 Quadro Esquematizado (Compare & Memorize)
-(Crie uma tabela Markdown curta comparando os conceitos-chave cobrados na questão para fixação visual)
-
-> ⚠️ **Pegadinha de Banca:** [Destaque o detalhe que mais derruba candidatos nesse tema]
-
-${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
-
-            let streamStarted = false;
-            let lastRenderTime = 0;
-
-            try {
-                const rawResponse = await callAIWithRetry(systemPrompt, appState.currentFile, (partialText) => {
-                    if (!streamStarted) {
-                        streamStarted = true;
-                        loading?.classList.add('hidden');
-                        workspace?.classList.remove('hidden');
-                    }
-
-                    const now = Date.now();
-                    if (now - lastRenderTime < 90) return;
-                    lastRenderTime = now;
-
-                    const subjMatch = partialText.match(/MATERIA:\s*(.+)/i);
-                    if (subjMatch && badgeEl) {
-                        badgeEl.textContent = subjMatch[1].trim();
-                    }
-
-                    const liveClean = partialText
-                        .replace(/MATERIA:\s*.+\n?/i, '')
-                        .replace(/RESUMO_ENUNCIADO:\s*.+\n?/i, '')
-                        .trim();
-
-                    if (contentEl && liveClean) {
-                        contentEl.innerHTML = renderVisualStudyHTML(liveClean);
-                    }
-                });
-
-                const subjectMatch = rawResponse.match(/MATERIA:\s*(.+)/i);
-                const summaryMatch = rawResponse.match(/RESUMO_ENUNCIADO:\s*(.+)/i);
-
-                const detectedSubject = subjectMatch ? subjectMatch[1].trim() : 'GERAL - QUESTÃO ANALISADA';
-                const questionSnippet = summaryMatch
-                    ? summaryMatch[1].trim()
-                    : (extraText || appState.currentFile?.name || 'Questão analisada por imagem/PDF');
-
-                const cleanedMarkdown = rawResponse
-                    .replace(/MATERIA:\s*.+\n?/i, '')
-                    .replace(/RESUMO_ENUNCIADO:\s*.+\n?/i, '')
-                    .trim();
-
-                const newQuestion = {
-                    id: 'q_' + Date.now(),
-                    date: new Date().toLocaleDateString('pt-BR'),
-                    subject: detectedSubject,
-                    snippet: questionSnippet,
-                    userAttempt: userAttempt || '',
-                    confidenceLevel: userAttempt ? confidenceLevel : '',
-                    analysis: cleanedMarkdown,
-                    notes: [],
-                    deepStudy: {},
-                    customQa: []
-                };
-
-                appState.questions.unshift(newQuestion);
-                appState.currentQuestionId = newQuestion.id;
-                saveQuestionsToStorage();
-
-                if (badgeEl) badgeEl.textContent = detectedSubject;
-                if (contentEl) contentEl.innerHTML = renderVisualStudyHTML(cleanedMarkdown);
-
-                renderCurrentNotes();
-                renderDeepStudyBlocks('study', newQuestion);
-                renderCustomQaList('study', newQuestion);
-
-                loading?.classList.add('hidden');
-                workspace?.classList.remove('hidden');
-                document.getElementById('btn-clear-input')?.classList.remove('hidden');
-                refreshIcons();
-                showToast('Questão corrigida e salva no caderno!', 'success');
-
-            } catch (err) {
-                console.error(err);
-                loading?.classList.add('hidden');
-                showToast(err.message || 'Erro ao analisar a questão.', 'error');
-            } finally {
-                if (btn) btn.disabled = false;
-            }
-        }
-
-        function saveQuestionsToStorage() {
-            localStorage.setItem('estudo_ativo_questions', JSON.stringify(appState.questions));
-        }
-
-        // ==========================================
-        // ESTAÇÃO DE APROFUNDAMENTO ATIVO & TUTORIA
-        // ==========================================
-        async function generateDeepStudy(context, mode) {
-            const qId = context === 'modal' ? appState.activeModalQuestionId : appState.currentQuestionId;
-            const question = appState.questions.find(q => q.id === qId);
-            if (!question) return;
-
-            const container = document.getElementById(`${context}-deep-container`);
-            if (!container) return;
-
-            const loaderId = `loader-${context}-${mode}`;
-            if (document.getElementById(loaderId)) return;
-
-            const loaderEl = document.createElement('div');
-            loaderEl.id = loaderId;
-            loaderEl.className = 'p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200 text-xs font-medium text-indigo-800 flex items-center gap-2';
-            loaderEl.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Gerando material de aprofundamento...</span>`;
-            container.prepend(loaderEl);
-            refreshIcons();
-
-            const prompts = {
-                mindmap: `Com base na matéria "${question.subject}" e na análise abaixo, crie um MAPA MENTAL ESTRUTURADO EM ÁRVORE VISUAL (usando indentação, setas ➔, emojis e palavras-chave em negrito) para revisão rápida de véspera de prova. Seja direto e visual:\n\n${question.analysis}`,
-                flashcards: `Crie exatamente 4 FLASHCARDS de memorização ativa sobre "${question.subject}" baseados nesta análise. Responda APENAS com um JSON válido no formato: [{"front":"Pergunta curta ou lacuna","back":"Resposta objetiva e regra"}]. Sem texto fora do JSON.\n\nAnálise:\n${question.analysis}`,
-                practice: `Crie 2 QUESTÕES INÉDITAS estilo concurso público sobre o mesmo tema ("${question.subject}") com gabarito comentado ao final em formato visual:\n\nReferência:\n${question.analysis}`
-            };
-
-            try {
-                const result = await callAIWithRetry(prompts[mode]);
-                if (!question.deepStudy) question.deepStudy = {};
-
-                if (mode === 'flashcards') {
-                    const jsonMatch = result.match(/\[[\s\S]*\]/);
-                    if (!jsonMatch) throw new Error('Formato de flashcards inválido.');
-                    question.deepStudy.flashcards = JSON.parse(jsonMatch[0]);
-                } else {
-                    question.deepStudy[mode] = result;
-                }
-
-                saveQuestionsToStorage();
-                loaderEl.remove();
-                renderDeepStudyBlocks(context, question);
-                refreshIcons();
-                showToast('Material gerado com sucesso!', 'success');
-            } catch (err) {
-                loaderEl.remove();
-                showToast(`Erro ao gerar material: ${err.message}`, 'error');
-            }
-        }
-
-        function renderDeepStudyBlocks(context, question) {
-            const container = document.getElementById(`${context}-deep-container`);
-            if (!container) return;
-            container.innerHTML = '';
-
-            const deep = question.deepStudy || {};
-
-            if (deep.mindmap) {
-                const div = document.createElement('div');
-                div.className = 'p-4 rounded-xl bg-indigo-50/50 border border-indigo-200 space-y-2';
-                div.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5"><i data-lucide="network" class="w-3.5 h-3.5"></i> Mapa Mental Esquematizado</span>
-                    </div>
-                    <div class="prose-study text-xs">${renderVisualStudyHTML(deep.mindmap)}</div>
-                `;
-                container.appendChild(div);
-            }
-
-            if (Array.isArray(deep.flashcards) && deep.flashcards.length > 0) {
-                const wrap = document.createElement('div');
-                wrap.className = 'space-y-2';
-                wrap.innerHTML = `<span class="text-xs font-bold text-purple-900 flex items-center gap-1.5"><i data-lucide="layers" class="w-3.5 h-3.5"></i> Flashcards Interativos (Toque para virar)</span>`;
-
-                const grid = document.createElement('div');
-                grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-2.5';
-
-                deep.flashcards.forEach((card, idx) => {
-                    const cardEl = document.createElement('div');
-                    cardEl.className = 'flashcard-perspective h-32 cursor-pointer select-none';
-                    cardEl.onclick = () => cardEl.classList.toggle('flashcard-flipped');
-                    cardEl.innerHTML = `
-                        <div class="flashcard-inner relative w-full h-full">
-                            <div class="flashcard-face absolute inset-0 rounded-xl bg-purple-50 border border-purple-200 p-3.5 flex flex-col justify-between">
-                                <span class="text-[10px] font-bold uppercase text-purple-600">Card ${idx + 1} • Pergunta</span>
-                                <p class="text-xs font-semibold text-slate-800 line-clamp-3">${escapeHTML(card.front)}</p>
-                                <span class="text-[10px] text-purple-500 text-right">Toque para ver resposta ↻</span>
-                            </div>
-                            <div class="flashcard-face flashcard-back absolute inset-0 rounded-xl bg-purple-900 text-white p-3.5 flex flex-col justify-between">
-                                <span class="text-[10px] font-bold uppercase text-purple-200">Resposta</span>
-                                <p class="text-xs leading-snug overflow-y-auto">${escapeHTML(card.back)}</p>
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(cardEl);
-                });
-
-                wrap.appendChild(grid);
-                container.appendChild(wrap);
-            }
-
-            if (deep.practice) {
-                const div = document.createElement('div');
-                div.className = 'p-4 rounded-xl bg-teal-50/50 border border-teal-200 space-y-2';
-                div.innerHTML = `
-                    <span class="text-xs font-bold text-teal-900 flex items-center gap-1.5"><i data-lucide="file-check-2" class="w-3.5 h-3.5"></i> Questões Inéditas de Fixação</span>
-                    <div class="prose-study text-xs">${renderVisualStudyHTML(deep.practice)}</div>
-                `;
-                container.appendChild(div);
-            }
-        }
-
-        function askPresetQuestion(context, presetText) {
-            const input = document.getElementById(`${context}-custom-question-input`);
-            if (input) {
-                input.value = presetText;
-                submitCustomQuestion(context);
-            }
-        }
-
-        async function submitCustomQuestion(context) {
-            const input = document.getElementById(`${context}-custom-question-input`);
-            const btn = document.getElementById(`${context}-btn-ask-ai`);
-            const userQ = (input?.value || '').trim();
-            if (!userQ) {
-                showToast('Digite sua dúvida antes de enviar.', 'warning');
-                return;
-            }
-
-            const qId = context === 'modal' ? appState.activeModalQuestionId : appState.currentQuestionId;
-            const question = appState.questions.find(q => q.id === qId);
-            if (!question) return;
-
-            if (btn) btn.disabled = true;
-            const originalBtnHtml = btn ? btn.innerHTML : '';
-            if (btn) btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Pensando...</span>`;
-            refreshIcons();
-
-            const tutorPrompt = `Você é um professor particular de concursos públicos. O aluno está estudando esta questão sobre "${question.subject}":
-Contexto da questão: ${question.snippet}
-
-Dúvida específica do aluno: "${userQ}"
-
-Responda de forma extremamente VISUAL, didática e escaneável (use tópicos curtos, negrito em palavras-chave, tabela comparativa se ajudar e exemplos práticos de prova).`;
-
-            try {
-                const answer = await callAIWithRetry(tutorPrompt);
-                if (!Array.isArray(question.customQa)) question.customQa = [];
-                question.customQa.push({
-                    id: 'qa_' + Date.now(),
-                    q: userQ,
-                    a: answer
-                });
-                saveQuestionsToStorage();
-
-                if (input) input.value = '';
-                renderCustomQaList(context, question);
-                refreshIcons();
-                showToast('Resposta adicionada ao estudo!', 'success');
-            } catch (err) {
-                showToast(`Erro na tutoria: ${err.message}`, 'error');
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = originalBtnHtml;
-                    refreshIcons();
-                }
-            }
-        }
-
-        function renderCustomQaList(context, question) {
-            const listEl = document.getElementById(`${context}-custom-qa-list`);
-            if (!listEl) return;
-            listEl.innerHTML = '';
-
-            const items = question.customQa || [];
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'rounded-xl border border-indigo-100 bg-slate-50/90 p-3.5 space-y-2';
-                card.innerHTML = `
-                    <div class="flex items-start justify-between gap-2">
-                        <p class="text-xs font-bold text-indigo-900">🙋‍♂️ ${escapeHTML(item.q)}</p>
-                        <button type="button" onclick="deleteCustomQa('${context}', '${question.id}', '${item.id}')" class="text-slate-400 hover:text-rose-600 p-1">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                        </button>
-                    </div>
-                    <div class="prose-study text-xs pt-1 border-t border-slate-200/70">${renderVisualStudyHTML(item.a)}</div>
-                `;
-                listEl.appendChild(card);
-            });
-        }
-
-        function deleteCustomQa(context, questionId, qaId) {
-            const q = appState.questions.find(item => item.id === questionId);
-            if (!q || !q.customQa) return;
-            q.customQa = q.customQa.filter(item => item.id !== qaId);
-            saveQuestionsToStorage();
-            renderCustomQaList(context, q);
-            refreshIcons();
-        }
-
-        // ==========================================
-        // ANOTAÇÕES INTELIGENTES POR PRIORIDADE
-        // ==========================================
-        function selectNotePriority(priority) {
-            appState.selectedPriority = priority;
-            document.querySelectorAll('.priority-btn').forEach(btn => {
-                const p = btn.getAttribute('data-priority');
-                btn.classList.remove('border-2', 'border-rose-500', 'bg-rose-50', 'text-rose-800', 'border-amber-500', 'bg-amber-50', 'text-amber-800', 'border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
-                btn.classList.add('border', 'border-slate-200', 'bg-slate-50', 'text-slate-600');
-
-                if (p === priority) {
-                    btn.classList.remove('border', 'border-slate-200', 'bg-slate-50', 'text-slate-600');
-                    if (p === 'high') btn.classList.add('border-2', 'border-rose-500', 'bg-rose-50', 'text-rose-800');
-                    if (p === 'medium') btn.classList.add('border-2', 'border-amber-500', 'bg-amber-50', 'text-amber-800');
-                    if (p === 'low') btn.classList.add('border-2', 'border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
-                }
-            });
-        }
-
-        function getPriorityStyle(priority) {
-            if (priority === 'high') {
-                return { badge: '🔴 Muito Importante', box: 'bg-rose-50 border-rose-200 text-rose-950' };
-            }
-            if (priority === 'medium') {
-                return { badge: '🟡 Médio / Revisar', box: 'bg-amber-50 border-amber-200 text-amber-950' };
-            }
-            return { badge: '🟢 Base / Tranquilo', box: 'bg-emerald-50 border-emerald-200 text-emerald-950' };
-        }
-
-        function addNoteToCurrentQuestion() {
-            const input = document.getElementById('new-note-text');
-            const text = (input?.value || '').trim();
-            if (!text) {
-                showToast('Escreva sua anotação primeiro.', 'warning');
-                return;
-            }
-            const q = appState.questions.find(item => item.id === appState.currentQuestionId);
-            if (!q) return;
-
-            q.notes.push({
-                id: 'n_' + Date.now(),
-                text,
-                priority: appState.selectedPriority,
-                createdAt: new Date().toLocaleDateString('pt-BR')
-            });
-            saveQuestionsToStorage();
-            if (input) input.value = '';
-            renderCurrentNotes();
-            refreshIcons();
-            showToast('Anotação salva!', 'success');
-        }
-
-        function renderCurrentNotes() {
-            const list = document.getElementById('current-notes-list');
-            if (!list) return;
-            list.innerHTML = '';
-
-            const q = appState.questions.find(item => item.id === appState.currentQuestionId);
-            if (!q || !q.notes.length) {
-                list.innerHTML = `<p class="text-xs text-slate-400 italic">Nenhuma anotação adicionada nesta questão ainda.</p>`;
-                return;
-            }
-
-            q.notes.forEach(note => {
-                const st = getPriorityStyle(note.priority);
-                const el = document.createElement('div');
-                el.className = `p-3 rounded-xl border text-xs flex items-start justify-between gap-2.5 ${st.box}`;
-                el.innerHTML = `
-                    <div class="space-y-1">
-                        <span class="font-bold text-[11px] block">${st.badge}</span>
-                        <p class="leading-relaxed">${escapeHTML(note.text)}</p>
-                    </div>
-                    <button type="button" onclick="deleteNote('${q.id}', '${note.id}', 'study')" class="opacity-60 hover:opacity-100 p-1">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                `;
-                list.appendChild(el);
-            });
-        }
-
-        function deleteNote(questionId, noteId, context) {
-            const q = appState.questions.find(item => item.id === questionId);
-            if (!q) return;
-            q.notes = q.notes.filter(n => n.id !== noteId);
-            saveQuestionsToStorage();
-            if (context === 'modal') {
-                renderModalNotes(q);
-            } else {
-                renderCurrentNotes();
-            }
-            renderNotebook();
-            refreshIcons();
-        }
-
-        // ==========================================
-        // MEU CADERNO (AGRUPADO EM PASTAS POR MATÉRIA)
-        // ==========================================
-        function setPriorityFilter(priority) {
-            appState.filterPriority = priority;
-            document.querySelectorAll('.filter-pill').forEach(btn => {
-                const f = btn.getAttribute('data-filter');
-                if (f === priority) {
-                    btn.classList.add('ring-2', 'ring-offset-1', 'ring-indigo-500');
-                } else {
-                    btn.classList.remove('ring-2', 'ring-offset-1', 'ring-indigo-500');
-                }
-            });
-            renderNotebook();
-        }
-
-        function extractMainDiscipline(fullSubject) {
-            if (!fullSubject) return 'GERAL';
-            const parts = fullSubject.split(/\s*[-–—:|]\s*/);
-            return parts[0].trim().toUpperCase();
-        }
-
-        function extractSubTopic(fullSubject) {
-            if (!fullSubject) return '';
-            const parts = fullSubject.split(/\s*[-–—:|]\s*/);
-            return parts.length > 1 ? parts.slice(1).join(' - ').trim() : '';
-        }
-
-        function renderNotebook() {
-            const listContainer = document.getElementById('notebook-list');
-            const emptyState = document.getElementById('empty-notebook');
-            const subjectSelect = document.getElementById('filter-subject');
-            if (!listContainer || !emptyState) return;
-
-            const totalQ = appState.questions.length;
-            let highNotesCount = 0;
-            const disciplineSet = new Set();
-
-            appState.questions.forEach(q => {
-                disciplineSet.add(extractMainDiscipline(q.subject));
-                (q.notes || []).forEach(n => {
-                    if (n.priority === 'high') highNotesCount++;
-                });
-            });
-
-            const statTotal = document.getElementById('stat-total-questions');
-            const statHigh = document.getElementById('stat-high-notes');
-            const statSubj = document.getElementById('stat-subjects-count');
-            if (statTotal) statTotal.textContent = totalQ;
-            if (statHigh) statHigh.textContent = highNotesCount;
-            if (statSubj) statSubj.textContent = disciplineSet.size;
-
-            if (subjectSelect) {
-                const currentVal = subjectSelect.value || 'ALL';
-                subjectSelect.innerHTML = `<option value="ALL">Todas as Matérias (${disciplineSet.size})</option>`;
-                Array.from(disciplineSet).sort().forEach(disc => {
-                    const opt = document.createElement('option');
-                    opt.value = disc;
-                    opt.textContent = disc;
-                    if (disc === currentVal) opt.selected = true;
-                    subjectSelect.appendChild(opt);
-                });
-            }
-
-            const selectedDiscipline = subjectSelect ? subjectSelect.value : 'ALL';
-
-            const filtered = appState.questions.filter(q => {
-                const mainDisc = extractMainDiscipline(q.subject);
-                if (selectedDiscipline !== 'ALL' && mainDisc !== selectedDiscipline) return false;
-                if (appState.filterPriority !== 'ALL') {
-                    const hasMatchingNote = (q.notes || []).some(n => n.priority === appState.filterPriority);
-                    if (!hasMatchingNote) return false;
-                }
-                return true;
-            });
-
-            listContainer.innerHTML = '';
-            if (filtered.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            }
-            emptyState.classList.add('hidden');
-
-            const grouped = {};
-            filtered.forEach(q => {
-                const disc = extractMainDiscipline(q.subject);
-                if (!grouped[disc]) grouped[disc] = [];
-                grouped[disc].push(q);
-            });
-
-            Object.keys(grouped).sort().forEach(disc => {
-                const items = grouped[disc];
-                const folderRedAlerts = items.reduce((acc, q) => acc + (q.notes || []).filter(n => n.priority === 'high').length, 0);
-
-                const folderDetails = document.createElement('details');
-                folderDetails.open = true;
-                folderDetails.className = 'bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden group';
-
-                const summary = document.createElement('summary');
-                summary.className = 'list-none cursor-pointer px-4 py-3.5 bg-slate-50/90 hover:bg-slate-100/80 flex items-center justify-between gap-2 select-none transition';
-                summary.innerHTML = `
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
-                            <i data-lucide="folder-open" class="w-4 h-4"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <h3 class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHTML(disc)}</h3>
-                            <p class="text-[11px] text-slate-500">${items.length} questão(ões) salva(s)</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        ${folderRedAlerts > 0 ? `<span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-bold">🔴 ${folderRedAlerts}</span>` : ''}
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform group-open:rotate-180"></i>
-                    </div>
-                `;
-                folderDetails.appendChild(summary);
-
-                const cardsWrap = document.createElement('div');
-                cardsWrap.className = 'p-3 space-y-2.5 border-t border-slate-100 bg-white';
-
-                items.forEach(q => {
-                    const subTopic = extractSubTopic(q.subject);
-                    const notesCount = (q.notes || []).length;
-                    const qaCount = (q.customQa || []).length;
-
-                    const card = document.createElement('div');
-                    card.onclick = () => openQuestionModal(q.id);
-                    card.className = 'p-3.5 rounded-xl border border-slate-200/80 hover:border-indigo-300 bg-slate-50/40 hover:bg-indigo-50/30 cursor-pointer transition space-y-2';
-                    card.innerHTML = `
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-[11px] font-bold text-indigo-700 truncate">
-                                ${subTopic ? `📌 ${escapeHTML(subTopic)}` : '📌 Tópico Geral'}
-                            </span>
-                            <span class="text-[11px] text-slate-400 shrink-0">${escapeHTML(q.date)}</span>
-                        </div>
-                        <p class="text-xs text-slate-700 line-clamp-2 leading-relaxed">${escapeHTML(q.snippet)}</p>
-                        <div class="flex items-center justify-between pt-1 text-[11px]">
-                            <div class="flex items-center gap-2 text-slate-500">
-                                <span>${notesCount} anotação(ões)</span>
-                                ${qaCount > 0 ? `<span>• ${qaCount} dúvida(s) IA</span>` : ''}
-                                ${q.confidenceLevel ? `<span>• ${escapeHTML(q.confidenceLevel)}</span>` : ''}
-                            </div>
-                            <span class="font-bold text-indigo-600">Abrir revisão ›</span>
-                        </div>
-                    `;
-                    cardsWrap.appendChild(card);
-                });
-
-                folderDetails.appendChild(cardsWrap);
-                listContainer.appendChild(folderDetails);
-            });
-
-            refreshIcons();
-        }
-
-        // ==========================================
-        // MODAL DE REVISÃO DA QUESTÃO SALVA
-        // ==========================================
-        function openQuestionModal(questionId) {
-            const q = appState.questions.find(item => item.id === questionId);
-            if (!q) return;
-
-            appState.activeModalQuestionId = q.id;
-            const subjEl = document.getElementById('modal-subject');
-            const titleEl = document.getElementById('modal-title');
-            const aiEl = document.getElementById('modal-ai-content');
-
-            if (subjEl) subjEl.textContent = q.subject;
-            if (titleEl) titleEl.textContent = q.snippet;
-            if (aiEl) aiEl.innerHTML = renderVisualStudyHTML(q.analysis);
-
-            renderModalNotes(q);
-            renderDeepStudyBlocks('modal', q);
-            renderCustomQaList('modal', q);
-
-            document.getElementById('question-modal')?.classList.remove('hidden');
-            refreshIcons();
-        }
-
-        function closeQuestionModal() {
-            document.getElementById('question-modal')?.classList.add('hidden');
-            appState.activeModalQuestionId = null;
-            renderNotebook();
-        }
-
-        function deleteModalQuestion() {
-            if (!appState.activeModalQuestionId) return;
-            appState.questions = appState.questions.filter(q => q.id !== appState.activeModalQuestionId);
-            saveQuestionsToStorage();
-            closeQuestionModal();
-            showToast('Questão removida do caderno.', 'info');
-        }
-
-        function selectModalPriority(priority) {
-            appState.modalPriority = priority;
-            document.querySelectorAll('.modal-p-btn').forEach(btn => {
-                const p = btn.getAttribute('data-mpriority');
-                btn.className = 'modal-p-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold border border-slate-200 bg-white text-slate-600';
-                if (p === priority) {
-                    if (p === 'high') btn.className = 'modal-p-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold border-2 border-rose-500 bg-rose-50 text-rose-800';
-                    if (p === 'medium') btn.className = 'modal-p-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold border-2 border-amber-500 bg-amber-50 text-amber-800';
-                    if (p === 'low') btn.className = 'modal-p-btn flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold border-2 border-emerald-500 bg-emerald-50 text-emerald-800';
-                }
-            });
-        }
-
-        function addNoteInModal() {
-            const input = document.getElementById('modal-new-note');
-            const text = (input?.value || '').trim();
-            if (!text) return;
-
-            const q = appState.questions.find(item => item.id === appState.activeModalQuestionId);
-            if (!q) return;
-
-            q.notes.push({
-                id: 'n_' + Date.now(),
-                text,
-                priority: appState.modalPriority,
-                createdAt: new Date().toLocaleDateString('pt-BR')
-            });
-            saveQuestionsToStorage();
-            if (input) input.value = '';
-            renderModalNotes(q);
-            refreshIcons();
-            showToast('Anotação salva!', 'success');
-        }
-
-        function renderModalNotes(q) {
-            const list = document.getElementById('modal-notes-list');
-            if (!list) return;
-            list.innerHTML = '';
-
-            if (!q.notes || q.notes.length === 0) {
-                list.innerHTML = `<p class="text-xs text-slate-400 italic">Nenhuma anotação nesta questão.</p>`;
-                return;
-            }
-
-            q.notes.forEach(note => {
-                const st = getPriorityStyle(note.priority);
-                const el = document.createElement('div');
-                el.className = `p-2.5 rounded-xl border text-xs flex items-start justify-between gap-2 ${st.box}`;
-                el.innerHTML = `
-                    <div>
-                        <span class="font-bold text-[10px] block">${st.badge}</span>
-                        <p class="mt-0.5">${escapeHTML(note.text)}</p>
-                    </div>
-                    <button type="button" onclick="deleteNote('${q.id}', '${note.id}', 'modal')" class="opacity-60 hover:opacity-100 p-1">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                    </button>
-                `;
-                list.appendChild(el);
-            });
-        }
-
-        // ==========================================
-        // EXPORTAÇÃO E BACKUP (.JSON E .MD)
-        // ==========================================
-        function exportBackup() {
-            const payload = {
-                version: 2,
-                exportedAt: new Date().toISOString(),
-                questions: appState.questions
-            };
-            downloadTextFile(JSON.stringify(payload, null, 2), `estudo-ativo-backup-${new Date().toISOString().slice(0, 10)}.json`, 'application/json');
-            showToast('Backup JSON baixado!', 'success');
-        }
-
-        function importBackup(event) {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const parsed = JSON.parse(e.target.result);
-                    const importedQuestions = Array.isArray(parsed) ? parsed : parsed.questions;
-                    if (!Array.isArray(importedQuestions)) throw new Error('Arquivo inválido.');
-
-                    const existingIds = new Set(appState.questions.map(q => q.id));
-                    let added = 0;
-                    importedQuestions.forEach(q => {
-                        if (q && q.id && !existingIds.has(q.id)) {
-                            appState.questions.push(q);
-                            added++;
-                        }
-                    });
-                    saveQuestionsToStorage();
+                // Ordena da mais recente para a mais antiga
+                appState.notebook = Array.from(remoteMap.values()).sort((a, b) => Number(b.id) - Number(a.id));
+                localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+                appState.cloudConnected = true;
+                updateCloudStatusBadge('connected');
+                updateNotebookStats();
+                populateArchiveSelect();
+                if (!document.getElementById('tab-notebook').classList.contains('hidden')) {
                     renderNotebook();
-                    showToast(`${added} questão(ões) importada(s) com sucesso!`, 'success');
-                } catch (err) {
-                    showToast('Erro ao importar arquivo JSON.', 'error');
                 }
-            };
-            reader.readAsText(file);
-        }
-
-        function exportMarkdown() {
-            if (!appState.questions.length) {
-                showToast('Seu caderno está vazio.', 'warning');
-                return;
+                if (notify) showToast(`Nuvem sincronizada (${appState.notebook.length} questões)!`, 'success');
+                return true;
+            } catch (err) {
+                console.error('Erro Supabase:', err);
+                appState.cloudConnected = false;
+                updateCloudStatusBadge('error');
+                if (notify) showToast('Falha ao conectar no Supabase. Verifique URL, chave e tabela questoes.', 'error');
+                return false;
             }
-            let md = `# Caderno de Estudo Ativo\nExportado em: ${new Date().toLocaleDateString('pt-BR')}\n\n---\n\n`;
-            appState.questions.forEach((q, idx) => {
-                md += `## ${idx + 1}. ${q.subject} (${q.date})\n`;
-                md += `**Enunciado:** ${q.snippet}\n\n`;
-                if (q.userAttempt) {
-                    md += `**Minha Tentativa:** ${q.userAttempt} (${q.confidenceLevel})\n\n`;
-                }
-                if (q.notes && q.notes.length > 0) {
-                    md += `### Minhas Anotações\n`;
-                    q.notes.forEach(n => {
-                        const tag = n.priority === 'high' ? '🔴 IMPORTANTE' : (n.priority === 'medium' ? '🟡 MÉDIO' : '🟢 BASE');
-                        md += `- **[${tag}]** ${n.text}\n`;
-                    });
-                    md += `\n`;
-                }
-                md += `### Análise da IA\n${q.analysis}\n\n`;
-                if (q.customQa && q.customQa.length > 0) {
-                    md += `### Dúvidas Aprofundadas\n`;
-                    q.customQa.forEach(qa => {
-                        md += `**Pergunta:** ${qa.q}\n\n${qa.a}\n\n`;
-                    });
-                }
-                md += `---\n\n`;
-            });
-            downloadTextFile(md, `caderno-estudo-ativo-${new Date().toISOString().slice(0, 10)}.md`, 'text/markdown');
-            showToast('Caderno Markdown exportado!', 'success');
         }
 
-        function downloadTextFile(content, filename, mimeType) {
-            const blob = new Blob([content], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        function downloadSelfHTML() {
-            const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-            downloadTextFile(fullHtml, 'estudo-ativo-app.html', 'text/html');
-            showToast('Arquivo HTML do aplicativo baixado!', 'success');
-        }
-    </script>
-</body>
-</html>
+        async function pushItemToCloud(item) {
+            if (!appState.supabaseUrl || !appState.supabaseKey) return;
+            try {
+                updateCloudStatusBadge('syncing');
+                const res = await fetch(`${appState.supabaseUrl}/rest/v1/questoes`, {
+                    method: 'POST',
+                    headers: {
