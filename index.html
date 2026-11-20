@@ -133,6 +133,22 @@
             font-size: 0.84em;
             font-weight: 600;
         }
+        .prose-study pre {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            padding: 0.9rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            font-size: 0.78rem;
+            line-height: 1.55;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+        .prose-study pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            font-weight: 500;
+        }
 
         .flashcard-item {
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1805,7 +1821,8 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}${u
 
             let prompt = '';
             if (type === 'mindmap') {
-                prompt = `Com base no conteúdo/aula abaixo, crie um MAPA MENTAL HIERÁRQUICO super claro em formato de árvore usando indentação e emojis para memorização rápida.\n\nContexto:\n${appState.currentRawAnalysis}`;
+                prompt = `Com base no conteúdo/aula abaixo, crie um MAPA MENTAL VISUAL EM ÁRVORE (diagrama ASCII/Unicode dentro de um único bloco de código \`\`\`) usando caracteres de ramificação (├──, └──, │) para conectar o Tema Central aos Ramos Principais, Sub-ramos, Gatilhos Mentais e Pegadinhas de Banca. Não use listas com marcadores fora do diagrama.\n\nContexto:\n${appState.currentRawAnalysis}`;
+            }
             } else if (type === 'flashcards') {
                 prompt = `Com base no conteúdo/aula abaixo, crie 4 FLASHCARDS de revisão ativa.
 Responda APENAS um JSON válido (sem blocos de código markdown, sem texto antes ou depois) neste formato exato:
