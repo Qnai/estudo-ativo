@@ -1822,7 +1822,6 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}${u
             let prompt = '';
             if (type === 'mindmap') {
                 prompt = `Com base no conteúdo/aula abaixo, crie um MAPA MENTAL VISUAL EM ÁRVORE (diagrama ASCII/Unicode dentro de um único bloco de código \`\`\`) usando caracteres de ramificação (├──, └──, │) para conectar o Tema Central aos Ramos Principais, Sub-ramos, Gatilhos Mentais e Pegadinhas de Banca. Não use listas com marcadores fora do diagrama.\n\nContexto:\n${appState.currentRawAnalysis}`;
-            }
             } else if (type === 'flashcards') {
                 prompt = `Com base no conteúdo/aula abaixo, crie 4 FLASHCARDS de revisão ativa.
 Responda APENAS um JSON válido (sem blocos de código markdown, sem texto antes ou depois) neste formato exato:
