@@ -602,8 +602,7 @@
                         <label class="block text-[11px] font-medium text-slate-600 mb-1">Modelo Gemini (Suporta Texto, Fotos e PDFs)</label>
                         <select id="gemini-model-select" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 outline-none">
                             <option value="gemini-2.5-flash">Gemini 2.5 Flash (Padrão)</option>
-                            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
-                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Rápido)</option>
                         </select>
                     </div>
                 </div>
@@ -820,7 +819,10 @@
             },
             models: {
                 groq: localStorage.getItem('estudo_ativo_groq_model') || 'openai/gpt-oss-20b',
-                gemini: localStorage.getItem('estudo_ativo_gemini_model') || 'gemini-2.5-flash'
+                gemini: (() => {
+                    const saved = localStorage.getItem('estudo_ativo_gemini_model') || 'gemini-2.5-flash';
+                    return (saved === 'gemini-2.5-flash-lite' || saved === 'gemini-2.0-flash') ? 'gemini-3.5-flash-lite' : saved;
+                })()
             },
             autoFallback: localStorage.getItem('estudo_ativo_autofallback') !== 'false',
             questions: JSON.parse(localStorage.getItem('estudo_ativo_questions') || '[]'),
@@ -1221,18 +1223,22 @@
                     const useStream = typeof onStreamChunk === 'function';
 
                     try {
+                        const payload = {
+                            model: modelId,
+                            messages: [{ role: 'user', content: userContent }],
+                            stream: useStream
+                        };
+                        if (!modelId.includes('gpt-oss')) {
+                            payload.temperature = 0.3;
+                        }
+
                         const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization': `Bearer ${apiKey}`
                             },
-                            body: JSON.stringify({
-                                model: modelId,
-                                messages: [{ role: 'user', content: userContent }],
-                                temperature: 0.3,
-                                stream: useStream
-                            })
+                            body: JSON.stringify(payload)
                         }, 18000);
 
                         if (!response.ok) {
@@ -1284,10 +1290,13 @@
                 }
                 throw lastError || new Error('Falha nos modelos da Groq.');
             } else {
-                // Fila enxuta de no máximo 2 modelos Flash no Gemini
+                // Fila enxuta com modelos ativos do Gemini
                 const queue = [appState.models.gemini];
-                if (appState.models.gemini !== 'gemini-2.5-flash-lite') {
-                    queue.push('gemini-2.5-flash-lite');
+                if (appState.models.gemini !== 'gemini-3.5-flash-lite') {
+                    queue.push('gemini-3.5-flash-lite');
+                }
+                if (!queue.includes('gemini-2.5-flash')) {
+                    queue.push('gemini-2.5-flash');
                 }
 
                 const parts = [{ text: promptText }];
