@@ -217,6 +217,19 @@
     <!-- Notificação Toast Customizada (Substitui alert) -->
     <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none flex flex-col gap-2"></div>
 
+    <!-- Cabeçalho Superior Fixo -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+        <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                    <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold text-slate-900 leading-tight">Estudo Ativo</h1>
+                    <p id="header-subtitle" class="text-[11px] text-slate-500 leading-tight">Nova Questão</p>
+                </div>
+            </div>
+
             <!-- Status da API (Alternância rápida entre provedores salvos) -->
             <button onclick="quickSwitchProviderOrSettings()" id="api-status-badge" title="Toque para alternar provedor ou configurar chaves" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition active:scale-95">
                 <span class="w-2 h-2 rounded-full bg-amber-500"></span>
@@ -796,6 +809,257 @@
     </nav>
 
     <script>
+        // ==========================================
+        // ESTADO GLOBAL E INICIALIZAÇÃO DO APP
+        // ==========================================
+        const appState = {
+            provider: localStorage.getItem('estudo_ativo_provider') || 'groq',
+            keys: {
+                groq: localStorage.getItem('estudo_ativo_groq_key') || '',
+                gemini: localStorage.getItem('estudo_ativo_gemini_key') || localStorage.getItem('estudo_ativo_api_key') || ''
+            },
+            models: {
+                groq: localStorage.getItem('estudo_ativo_groq_model') || 'openai/gpt-oss-20b',
+                gemini: localStorage.getItem('estudo_ativo_gemini_model') || 'gemini-2.5-flash'
+            },
+            autoFallback: localStorage.getItem('estudo_ativo_autofallback') !== 'false',
+            questions: JSON.parse(localStorage.getItem('estudo_ativo_questions') || '[]'),
+            currentFile: null,
+            currentQuestionId: null,
+            selectedPriority: 'high',
+            modalPriority: 'high',
+            filterPriority: 'ALL',
+            activeModalQuestionId: null
+        };
+
+        function refreshIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function autoResizeTextarea(el) {
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 420) + 'px';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettingsToUI();
+            updateApiStatusUI();
+            renderNotebook();
+            refreshIcons();
+        });
+
+        // ==========================================
+        // NAVEGAÇÃO ENTRE ABAS E NOTIFICAÇÕES
+        // ==========================================
+        function switchTab(tabName) {
+            const tabs = ['study', 'notebook', 'settings'];
+            const subtitles = {
+                study: 'Nova Questão',
+                notebook: 'Meu Caderno',
+                settings: 'Ajustes e Backup'
+            };
+
+            tabs.forEach(t => {
+                const section = document.getElementById(`tab-${t}`);
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (section) section.classList.toggle('hidden', t !== tabName);
+                if (navBtn) {
+                    if (t === tabName) {
+                        navBtn.classList.remove('text-slate-400');
+                        navBtn.classList.add('text-indigo-600');
+                    } else {
+                        navBtn.classList.remove('text-indigo-600');
+                        navBtn.classList.add('text-slate-400');
+                    }
+                }
+            });
+
+            const subEl = document.getElementById('header-subtitle');
+            if (subEl) subEl.textContent = subtitles[tabName] || 'Estudo Ativo';
+
+            if (tabName === 'notebook') {
+                renderNotebook();
+            }
+            refreshIcons();
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const colors = {
+                success: 'bg-emerald-900 text-white border-emerald-700',
+                error: 'bg-rose-900 text-white border-rose-700',
+                warning: 'bg-amber-900 text-white border-amber-700',
+                info: 'bg-slate-900 text-white border-slate-700'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-lg text-xs font-medium flex items-center justify-between gap-2 fade-in ${colors[type] || colors.info}`;
+            toast.innerHTML = `<span>${escapeHTML(message)}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.25s ease';
+                setTimeout(() => toast.remove(), 260);
+            }, 3400);
+        }
+
+        // ==========================================
+        // CONFIGURAÇÃO DUPLA DE PROVEDORES (GROQ & GEMINI)
+        // ==========================================
+        function sanitizeKey(raw) {
+            return (raw || '').replace(/[\s"'`]/g, '').trim();
+        }
+
+        function selectActiveProvider(provider) {
+            appState.provider = provider;
+            const btnGroq = document.getElementById('provider-btn-groq');
+            const btnGemini = document.getElementById('provider-btn-gemini');
+
+            if (btnGroq && btnGemini) {
+                if (provider === 'groq') {
+                    btnGroq.className = 'py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 text-xs font-bold flex items-center justify-center gap-1.5 transition';
+                    btnGemini.className = 'py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition';
+                } else {
+                    btnGemini.className = 'py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 text-xs font-bold flex items-center justify-center gap-1.5 transition';
+                    btnGroq.className = 'py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition';
+                }
+            }
+        }
+
+        function toggleKeyInput(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function loadSettingsToUI() {
+            const groqInput = document.getElementById('groq-key-input');
+            const geminiInput = document.getElementById('gemini-key-input');
+            const groqModel = document.getElementById('groq-model-select');
+            const geminiModel = document.getElementById('gemini-model-select');
+            const fallbackChk = document.getElementById('auto-fallback-checkbox');
+
+            if (groqInput) groqInput.value = appState.keys.groq;
+            if (geminiInput) geminiInput.value = appState.keys.gemini;
+            if (groqModel) groqModel.value = appState.models.groq;
+            if (geminiModel) geminiModel.value = appState.models.gemini;
+            if (fallbackChk) fallbackChk.checked = appState.autoFallback;
+
+            selectActiveProvider(appState.provider);
+            updateSavedKeyBadges();
+        }
+
+        function updateSavedKeyBadges() {
+            const bGroq = document.getElementById('badge-saved-groq');
+            const bGemini = document.getElementById('badge-saved-gemini');
+            if (bGroq) bGroq.classList.toggle('hidden', !appState.keys.groq);
+            if (bGemini) bGemini.classList.toggle('hidden', !appState.keys.gemini);
+        }
+
+        function updateApiStatusUI() {
+            const badge = document.getElementById('api-status-badge');
+            if (!badge) return;
+
+            const hasGroq = Boolean(appState.keys.groq);
+            const hasGemini = Boolean(appState.keys.gemini);
+
+            if (!hasGroq && !hasGemini) {
+                badge.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition active:scale-95';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Configurar API</span>`;
+                return;
+            }
+
+            if (!appState.keys[appState.provider]) {
+                appState.provider = hasGroq ? 'groq' : 'gemini';
+                localStorage.setItem('estudo_ativo_provider', appState.provider);
+            }
+
+            const bothSaved = hasGroq && hasGemini;
+            const label = appState.provider === 'groq' ? '⚡ Groq' : '✨ Gemini';
+            badge.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 transition active:scale-95';
+            badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>${label}${bothSaved ? ' ⇄' : ''}</span>`;
+        }
+
+        function quickSwitchProviderOrSettings() {
+            const hasGroq = Boolean(appState.keys.groq);
+            const hasGemini = Boolean(appState.keys.gemini);
+
+            if (hasGroq && hasGemini) {
+                const next = appState.provider === 'groq' ? 'gemini' : 'groq';
+                appState.provider = next;
+                localStorage.setItem('estudo_ativo_provider', next);
+                selectActiveProvider(next);
+                updateApiStatusUI();
+                showToast(`Alternado para ${next === 'groq' ? 'Groq Cloud' : 'Google Gemini'}!`, 'success');
+            } else {
+                switchTab('settings');
+            }
+        }
+
+        function saveSettings() {
+            const groqKey = sanitizeKey(document.getElementById('groq-key-input')?.value);
+            const geminiKey = sanitizeKey(document.getElementById('gemini-key-input')?.value);
+            const groqModel = document.getElementById('groq-model-select')?.value || 'openai/gpt-oss-20b';
+            const geminiModel = document.getElementById('gemini-model-select')?.value || 'gemini-2.5-flash';
+            const autoFallback = document.getElementById('auto-fallback-checkbox')?.checked ?? true;
+
+            if (!groqKey && !geminiKey) {
+                showToast('Cole pelo menos uma chave (Groq ou Gemini) antes de salvar.', 'warning');
+                return;
+            }
+
+            if (appState.provider === 'gemini' && !geminiKey) {
+                showToast('Cole sua chave AIzaSy... no campo do Google Gemini antes de salvar.', 'warning');
+                return;
+            }
+
+            if (appState.provider === 'groq' && !groqKey) {
+                showToast('Cole sua chave gsk_... no campo da Groq Cloud antes de salvar.', 'warning');
+                return;
+            }
+
+            appState.keys.groq = groqKey;
+            appState.keys.gemini = geminiKey;
+            appState.models.groq = groqModel;
+            appState.models.gemini = geminiModel;
+            appState.autoFallback = autoFallback;
+
+            localStorage.setItem('estudo_ativo_provider', appState.provider);
+            localStorage.setItem('estudo_ativo_groq_key', groqKey);
+            localStorage.setItem('estudo_ativo_gemini_key', geminiKey);
+            localStorage.setItem('estudo_ativo_groq_model', groqModel);
+            localStorage.setItem('estudo_ativo_gemini_model', geminiModel);
+            localStorage.setItem('estudo_ativo_autofallback', String(autoFallback));
+
+            updateSavedKeyBadges();
+            updateApiStatusUI();
+
+            const count = (groqKey ? 1 : 0) + (geminiKey ? 1 : 0);
+            const feedback = document.getElementById('models-feedback-text');
+            if (feedback) {
+                feedback.className = 'text-[11px] font-semibold text-emerald-700';
+                feedback.textContent = `✓ ${count} chave(s) salva(s)! Provedor ativo: ${appState.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini'}.`;
+            }
+
+            showToast('Chaves e preferências salvas!', 'success');
+        }
+
         // ==========================================
         // UPLOAD DE IMAGEM / PDF (COM COMPRESSÃO RÁPIDA)
         // ==========================================
