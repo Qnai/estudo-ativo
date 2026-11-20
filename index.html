@@ -850,16 +850,20 @@
         }
 
         function getSupabaseHeaders() {
-            return {
-                'apikey': appState.supabaseKey,
-                'Authorization': `Bearer ${appState.supabaseKey}`,
+            const cleanKey = (appState.supabaseKey || '').replace(/\s+/g, '');
+            const headers = {
+                'apikey': cleanKey,
                 'Content-Type': 'application/json'
             };
+            if (cleanKey.startsWith('eyJ')) {
+                headers['Authorization'] = `Bearer ${cleanKey}`;
+            }
+            return headers;
         }
 
         async function saveAndConnectCloud() {
-            const url = (document.getElementById('supabase-url-input')?.value || '').trim().replace(/\/$/, '');
-            const key = (document.getElementById('supabase-key-input')?.value || '').trim();
+            const url = (document.getElementById('supabase-url-input')?.value || '').replace(/\s+/g, '').replace(/\/$/, '');
+            const key = (document.getElementById('supabase-key-input')?.value || '').replace(/\s+/g, '');
             const fb = document.getElementById('cloud-sync-feedback');
 
             if (!url || !key) {
@@ -889,7 +893,10 @@
                 const res = await fetch(`${appState.supabaseUrl}/rest/v1/questoes?select=id,data,updated_at`, {
                     headers: getSupabaseHeaders()
                 });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                if (!res.ok) {
+                    const errBody = await res.text().catch(() => '');
+                    throw new Error(`HTTP ${res.status} - ${errBody.slice(0, 120)}`);
+                }
                 const remoteRows = await res.json();
 
                 const remoteMap = new Map();
@@ -932,7 +939,7 @@
                 console.error('Erro Supabase:', err);
                 appState.cloudConnected = false;
                 updateCloudStatusBadge('error');
-                if (notify) showToast('Falha ao conectar no Supabase. Verifique URL, chave e tabela questoes.', 'error');
+                if (notify) showToast(`Erro: ${err.message}`, 'error');
                 return false;
             }
         }
