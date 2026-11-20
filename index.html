@@ -217,21 +217,8 @@
     <!-- Notificação Toast Customizada (Substitui alert) -->
     <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md pointer-events-none flex flex-col gap-2"></div>
 
-    <!-- Cabeçalho Superior -->
-    <header class="sticky top-0 z-30 bg-slate-50/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3.5">
-        <div class="max-w-3xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm shadow-indigo-200">
-                    <i data-lucide="brain-circuit" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h1 class="text-base font-bold text-slate-900 leading-tight">Estudo Ativo</h1>
-                    <p id="header-subtitle" class="text-xs text-slate-500 font-medium">Nova Questão</p>
-                </div>
-            </div>
-            
-            <!-- Status da API -->
-            <button onclick="switchTab('settings')" id="api-status-badge" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition active:scale-95">
+            <!-- Status da API (Alternância rápida entre provedores salvos) -->
+            <button onclick="quickSwitchProviderOrSettings()" id="api-status-badge" title="Toque para alternar provedor ou configurar chaves" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition active:scale-95">
                 <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                 <span>Configurar API</span>
             </button>
@@ -250,7 +237,7 @@
             <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200/80 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-                        <i data-lucide="camera" class="w-4 h-4 text-indigo-600"></i>
+                        <i data-lucide="file-question" class="w-4 h-4 text-indigo-600"></i>
                         1. Inserir Questão ou Material
                     </h2>
                     <button id="btn-clear-input" onclick="resetStudyForm()" class="hidden text-xs font-medium text-slate-400 hover:text-rose-600 transition">
@@ -258,23 +245,36 @@
                     </button>
                 </div>
 
-                <!-- Botões de Upload (Câmera / Arquivo / PDF) -->
-                <div id="upload-dropzone" class="border-2 border-dashed border-slate-200 hover:border-indigo-400 bg-slate-50/70 rounded-xl p-5 text-center transition">
+                <!-- Campo Principal de Texto Amplo (Prioridade para colar questões completas) -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="user-prompt-text" class="block text-xs font-semibold text-slate-700">
+                            Cole o texto completo da questão ou sua dúvida
+                        </label>
+                        <span class="text-[11px] text-slate-400">Expande automaticamente</span>
+                    </div>
+                    <textarea id="user-prompt-text" rows="6" oninput="autoResizeTextarea(this)" placeholder="Cole aqui o enunciado completo e as alternativas (A, B, C, D, E)...&#10;&#10;Ou deixe em branco caso envie uma foto/PDF abaixo." class="w-full min-h-[145px] max-h-[420px] rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-3 text-sm leading-relaxed text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition resize-y"></textarea>
+                </div>
+
+                <!-- Barra Compacta de Upload (Câmera / Galeria / PDF) -->
+                <div id="upload-dropzone" class="border border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50/70 rounded-xl px-3.5 py-2.5 transition">
                     <input type="file" id="file-input" accept="image/*,application/pdf" class="hidden" onchange="handleFileSelect(event)">
                     
-                    <div class="flex flex-col items-center justify-center gap-2">
-                        <div class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mb-1">
-                            <i data-lucide="file-up" class="w-6 h-6"></i>
+                    <div class="flex flex-wrap items-center justify-between gap-2.5">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="camera" class="w-4 h-4"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-slate-700 truncate">Prefere enviar Foto, Print ou PDF?</p>
+                                <p class="text-[11px] text-slate-400 truncate">Câmera, galeria ou documento PDF</p>
+                            </div>
                         </div>
-                        <p class="text-sm font-medium text-slate-700">Tire uma foto da questão ou suba um PDF</p>
-                        <p class="text-xs text-slate-400 max-w-xs">Suporta fotos da câmera, prints da galeria ou documentos PDF</p>
                         
-                        <div class="flex flex-wrap justify-center gap-2.5 mt-3 w-full">
-                            <button type="button" onclick="triggerFileInput()" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl shadow-sm transition active:scale-95">
-                                <i data-lucide="image-plus" class="w-4 h-4"></i>
-                                Escolher Foto / PDF
-                            </button>
-                        </div>
+                        <button type="button" onclick="triggerFileInput()" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold rounded-xl shadow-2xs transition active:scale-95 shrink-0">
+                            <i data-lucide="image-plus" class="w-3.5 h-3.5"></i>
+                            Foto / PDF
+                        </button>
                     </div>
                 </div>
 
@@ -530,76 +530,93 @@
         <!-- ABA 3: CONFIGURAÇÕES E BACKUP              -->
         <!-- ========================================== -->
         <section id="tab-settings" class="hidden fade-in space-y-5">
-            <!-- Configuração da Chave Gemini / Groq -->
+            <!-- Configuração Dupla de Chaves (Gemini + Groq salvos simultaneamente) -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                         <i data-lucide="key-round" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="text-sm font-bold text-slate-900">Conexão com Inteligência Artificial</h2>
-                        <p class="text-xs text-slate-500">Suporta Google Gemini (AIza...) e Groq (gsk_...) salvos localmente.</p>
+                        <h2 class="text-sm font-bold text-slate-900">Chaves de API (Gemini & Groq)</h2>
+                        <p class="text-xs text-slate-500">Salve as duas chaves no aparelho para alternar com 1 toque se uma atingir o limite.</p>
                     </div>
                 </div>
 
-                <!-- Seletor de Provedor -->
+                <!-- Seletor do Provedor Principal Ativo -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Provedor de IA</label>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Provedor Principal em Uso</label>
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" id="provider-btn-gemini" onclick="selectProvider('gemini')" class="py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 text-xs font-bold flex items-center justify-center gap-1.5 transition">
-                            <span>✨ Google Gemini</span>
-                        </button>
-                        <button type="button" id="provider-btn-groq" onclick="selectProvider('groq')" class="py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                        <button type="button" id="provider-btn-groq" onclick="selectActiveProvider('groq')" class="py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 text-xs font-bold flex items-center justify-center gap-1.5 transition">
                             <span>⚡ Groq Cloud</span>
+                            <span id="badge-saved-groq" class="hidden px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px]">Salva</span>
+                        </button>
+                        <button type="button" id="provider-btn-gemini" onclick="selectActiveProvider('gemini')" class="py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                            <span>✨ Google Gemini</span>
+                            <span id="badge-saved-gemini" class="hidden px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px]">Salva</span>
                         </button>
                     </div>
                 </div>
 
-                <div id="provider-instructions" class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 text-xs text-slate-600 space-y-1.5">
-                    <p class="font-semibold text-slate-800">Como pegar sua chave gratuita (Google Gemini):</p>
-                    <ol class="list-decimal pl-4 space-y-1">
-                        <li>Acesse <strong>aistudio.google.com</strong> com sua conta Google.</li>
-                        <li>Clique em <strong>"Get API key"</strong> no menu lateral.</li>
-                        <li>Crie uma chave (começa com <code>AIzaSy...</code>) e cole abaixo.</li>
-                    </ol>
-                </div>
-
-                <div class="space-y-3">
+                <!-- Card Chave Groq -->
+                <div class="p-3.5 rounded-xl border border-slate-200/90 bg-slate-50/70 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">⚡ Chave Groq Cloud (<code>gsk_...</code>)</span>
+                        <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-[11px] font-semibold text-indigo-600 hover:underline">Gerar chave ↗</a>
+                    </div>
+                    <div class="relative">
+                        <input type="password" id="groq-key-input" placeholder="gsk_..." class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 pr-10 text-xs sm:text-sm text-slate-800 focus:border-indigo-500 outline-none">
+                        <button type="button" onclick="toggleKeyInput('groq-key-input')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Chave de API (API Key)</label>
-                        <div class="relative">
-                            <input type="password" id="api-key-input" placeholder="AIzaSy... ou gsk_..." oninput="autoDetectProviderFromKey(this.value)" class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 pr-10 text-sm text-slate-800 focus:bg-white focus:border-indigo-500 outline-none">
-                            <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                                <i data-lucide="eye" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Modelo de Inteligência Artificial</label>
-                        <div class="flex gap-2">
-                            <select id="model-select" onchange="onModelSelectChange()" class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:border-indigo-500 outline-none">
-                                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Padrão)</option>
-                            </select>
-                            <button type="button" id="btn-refresh-models" onclick="testKeyAndRefreshModels()" class="px-3 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold flex items-center gap-1.5 shrink-0 transition active:scale-95" title="Testar Chave e Atualizar Modelos">
-                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                                <span class="hidden sm:inline">Testar Chave</span>
-                            </button>
-                        </div>
-                        <input type="text" id="custom-model-input" placeholder="Ex: llama-3.3-70b-versatile" class="hidden mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs text-slate-800 focus:bg-white focus:border-indigo-500 outline-none">
-                        <p id="models-feedback-text" class="text-[11px] text-slate-500 mt-1.5">Salve ou teste sua chave para carregar os modelos disponíveis na sua conta.</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        <button type="button" onclick="testKeyAndRefreshModels()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs sm:text-sm rounded-xl transition active:scale-95 flex items-center justify-center gap-1.5">
-                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
-                            Testar Chave e Atualizar Modelos
-                        </button>
-                        <button type="button" onclick="saveSettings()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95">
-                            Salvar Configurações
-                        </button>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Modelo Groq</label>
+                        <select id="groq-model-select" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 outline-none">
+                            <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (Padrão Rápido)</option>
+                            <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (Alta Capacidade)</option>
+                            <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B (Texto + Imagens)</option>
+                            <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
+                            <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
+                        </select>
                     </div>
                 </div>
+
+                <!-- Card Chave Google Gemini -->
+                <div class="p-3.5 rounded-xl border border-slate-200/90 bg-slate-50/70 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">✨ Chave Google Gemini (<code>AIzaSy...</code>)</span>
+                        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="text-[11px] font-semibold text-indigo-600 hover:underline">Gerar chave ↗</a>
+                    </div>
+                    <div class="relative">
+                        <input type="password" id="gemini-key-input" placeholder="AIzaSy..." class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 pr-10 text-xs sm:text-sm text-slate-800 focus:border-indigo-500 outline-none">
+                        <button type="button" onclick="toggleKeyInput('gemini-key-input')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-slate-600 mb-1">Modelo Gemini (Suporta Texto, Fotos e PDFs)</label>
+                        <select id="gemini-model-select" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-indigo-500 outline-none">
+                            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Padrão)</option>
+                            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite</option>
+                            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Opção de Fallback Automático entre os Provedores -->
+                <label class="flex items-center justify-between p-3 rounded-xl bg-indigo-50/60 border border-indigo-100 cursor-pointer">
+                    <div class="pr-2">
+                        <span class="text-xs font-bold text-indigo-950 block">Alternância Automática (Fallback)</span>
+                        <span class="text-[11px] text-indigo-700/80">Se a IA principal atingir o limite, usa automaticamente a outra chave salva.</span>
+                    </div>
+                    <input type="checkbox" id="auto-fallback-checkbox" checked class="w-4 h-4 accent-indigo-600 rounded">
+                </label>
+
+                <p id="models-feedback-text" class="text-[11px] text-slate-500">Você pode salvar uma ou ambas as chaves. Dica: toque no selo no topo da tela para alternar entre Groq e Gemini a qualquer momento!</p>
+
+                <button type="button" onclick="saveSettings()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition active:scale-95">
+                    Salvar Chaves e Preferências
+                </button>
             </div>
 
             <!-- Sincronização Manual (iPhone <-> iPad) -->
@@ -805,24 +822,39 @@
             ]
         };
 
-        const savedKey = localStorage.getItem('estudo_ativo_api_key') || '';
-        const detectedInitialProvider = savedKey.startsWith('gsk_')
-            ? 'groq'
-            : (localStorage.getItem('estudo_ativo_provider') || 'gemini');
+        // Migração transparente de chave única antiga para chaves separadas (Groq + Gemini)
+        const legacyKey = localStorage.getItem('estudo_ativo_api_key') || '';
+        let storedGroqKey = localStorage.getItem('estudo_ativo_groq_key') || '';
+        let storedGeminiKey = localStorage.getItem('estudo_ativo_gemini_key') || '';
 
-        const savedModel = localStorage.getItem('estudo_ativo_model');
-        const defaultModelForProvider = DEFAULT_FALLBACK_MODELS[detectedInitialProvider][0].id;
-        let initialModel = (savedModel && !/hydrogen|3\.8/i.test(savedModel)) ? savedModel : defaultModelForProvider;
-        if (detectedInitialProvider === 'groq' && savedModel === 'meta-llama/llama-4-scout-17b-16e-instruct') {
-            initialModel = 'openai/gpt-oss-20b';
-            localStorage.setItem('estudo_ativo_model', initialModel);
+        if (legacyKey) {
+            if (legacyKey.startsWith('gsk_') && !storedGroqKey) {
+                storedGroqKey = legacyKey;
+                localStorage.setItem('estudo_ativo_groq_key', storedGroqKey);
+            } else if (legacyKey.startsWith('AIza') && !storedGeminiKey) {
+                storedGeminiKey = legacyKey;
+                localStorage.setItem('estudo_ativo_gemini_key', storedGeminiKey);
+            }
         }
 
+        const initialProvider = localStorage.getItem('estudo_ativo_provider')
+            || (storedGroqKey ? 'groq' : (storedGeminiKey ? 'gemini' : 'groq'));
+
         const appState = {
-            apiKey: savedKey,
-            provider: detectedInitialProvider,
-            model: initialModel,
-            availableModels: [...DEFAULT_FALLBACK_MODELS[detectedInitialProvider]],
+            provider: initialProvider,
+            keys: {
+                groq: storedGroqKey,
+                gemini: storedGeminiKey
+            },
+            models: {
+                groq: localStorage.getItem('estudo_ativo_groq_model') || 'openai/gpt-oss-20b',
+                gemini: localStorage.getItem('estudo_ativo_gemini_model') || 'gemini-2.5-flash'
+            },
+            autoFallback: localStorage.getItem('estudo_ativo_auto_fallback') !== 'false',
+            availableModels: {
+                groq: [...DEFAULT_FALLBACK_MODELS.groq],
+                gemini: [...DEFAULT_FALLBACK_MODELS.gemini]
+            },
             questions: JSON.parse(localStorage.getItem('estudo_ativo_questions') || '[]'),
             currentFile: null,
             currentQuestionId: null,
@@ -838,98 +870,78 @@
             }
         }
 
-        function populateModelSelect(modelsList, selectedId) {
-            const selectEl = document.getElementById('model-select');
-            const customInputEl = document.getElementById('custom-model-input');
+        function autoResizeTextarea(el) {
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 420) + 'px';
+        }
+
+        function populateProviderSelect(provider, modelsList, selectedId) {
+            const selectEl = document.getElementById(`${provider}-model-select`);
             if (!selectEl) return;
 
             const list = Array.isArray(modelsList) && modelsList.length > 0
                 ? modelsList
-                : (DEFAULT_FALLBACK_MODELS[appState.provider] || []);
+                : DEFAULT_FALLBACK_MODELS[provider];
 
             selectEl.innerHTML = '';
-            let foundSelected = false;
-
+            let found = false;
             list.forEach(m => {
                 const opt = document.createElement('option');
                 opt.value = m.id;
                 opt.textContent = m.displayName || m.id;
                 if (m.id === selectedId) {
                     opt.selected = true;
-                    foundSelected = true;
+                    found = true;
                 }
                 selectEl.appendChild(opt);
             });
 
-            if (selectedId && !foundSelected && selectedId !== 'CUSTOM') {
-                const extraOpt = document.createElement('option');
-                extraOpt.value = selectedId;
-                extraOpt.textContent = `${selectedId} (Salvo)`;
-                extraOpt.selected = true;
-                selectEl.appendChild(extraOpt);
-            }
-
-            const customOpt = document.createElement('option');
-            customOpt.value = 'CUSTOM';
-            customOpt.textContent = 'Outro modelo (digitar nome)...';
-            selectEl.appendChild(customOpt);
-
-            if (customInputEl) {
-                if (selectEl.value === 'CUSTOM') {
-                    customInputEl.classList.remove('hidden');
-                } else {
-                    customInputEl.classList.add('hidden');
-                }
-            }
-        }
-
-        function onModelSelectChange() {
-            const selectEl = document.getElementById('model-select');
-            const customInputEl = document.getElementById('custom-model-input');
-            if (!selectEl || !customInputEl) return;
-            if (selectEl.value === 'CUSTOM') {
-                customInputEl.classList.remove('hidden');
-                customInputEl.focus();
-            } else {
-                customInputEl.classList.add('hidden');
+            if (selectedId && !found) {
+                const extra = document.createElement('option');
+                extra.value = selectedId;
+                extra.textContent = selectedId;
+                extra.selected = true;
+                selectEl.appendChild(extra);
             }
         }
 
         function loadSettingsToUI() {
-            const keyInput = document.getElementById('api-key-input');
-            if (keyInput && appState.apiKey) {
-                keyInput.value = appState.apiKey;
-            }
-            populateModelSelect(appState.availableModels, appState.model);
+            const groqInput = document.getElementById('groq-key-input');
+            const geminiInput = document.getElementById('gemini-key-input');
+            const fallbackCheck = document.getElementById('auto-fallback-checkbox');
+
+            if (groqInput) groqInput.value = appState.keys.groq;
+            if (geminiInput) geminiInput.value = appState.keys.gemini;
+            if (fallbackCheck) fallbackCheck.checked = appState.autoFallback;
+
+            populateProviderSelect('groq', appState.availableModels.groq, appState.models.groq);
+            populateProviderSelect('gemini', appState.availableModels.gemini, appState.models.gemini);
+            updateSavedBadges();
         }
 
-        function toggleApiKeyVisibility() {
-            const keyInput = document.getElementById('api-key-input');
-            if (!keyInput) return;
-            keyInput.type = keyInput.type === 'password' ? 'text' : 'password';
+        function updateSavedBadges() {
+            const bGroq = document.getElementById('badge-saved-groq');
+            const bGemini = document.getElementById('badge-saved-gemini');
+            if (bGroq) bGroq.classList.toggle('hidden', !appState.keys.groq);
+            if (bGemini) bGemini.classList.toggle('hidden', !appState.keys.gemini);
         }
 
-        async function testKeyAndRefreshModels() {
-            const keyInput = document.getElementById('api-key-input');
-            const key = sanitizeApiKey(keyInput?.value || '');
-            if (key) {
-                appState.apiKey = key;
-                localStorage.setItem('estudo_ativo_api_key', key);
-                localStorage.setItem('estudo_ativo_provider', appState.provider);
-            }
-            await fetchAvailableModels(true);
+        function toggleKeyInput(inputId) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            el.type = el.type === 'password' ? 'text' : 'password';
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
             refreshIcons();
-            selectProvider(appState.provider, false);
+            selectActiveProvider(appState.provider, false);
             loadSettingsToUI();
             updateApiStatusUI();
             renderNotebook();
 
-            if (appState.apiKey) {
-                await fetchAvailableModels(false);
-            }
+            if (appState.keys.groq) fetchAvailableModelsFor('groq');
+            if (appState.keys.gemini) fetchAvailableModelsFor('gemini');
         });
 
         // ==========================================
@@ -1002,27 +1014,17 @@
         }
 
         // ==========================================
-        // PROVEDORES DE IA (GEMINI & GROQ)
+        // PROVEDORES DE IA (GEMINI & GROQ DUPLO)
         // ==========================================
         function sanitizeApiKey(rawKey) {
             if (!rawKey) return '';
             return String(rawKey).trim().replace(/^["']|["']$/g, '').replace(/\s+/g, '');
         }
 
-        function autoDetectProviderFromKey(val) {
-            const clean = sanitizeApiKey(val);
-            if (clean.startsWith('gsk_') && appState.provider !== 'groq') {
-                selectProvider('groq', true);
-            } else if (clean.startsWith('AIza') && appState.provider !== 'gemini') {
-                selectProvider('gemini', true);
-            }
-        }
-
-        function selectProvider(provider, resetModel = true) {
-            appState.provider = provider === 'groq' ? 'groq' : 'gemini';
+        function selectActiveProvider(provider, persist = true) {
+            appState.provider = provider === 'gemini' ? 'gemini' : 'groq';
             const btnGemini = document.getElementById('provider-btn-gemini');
             const btnGroq = document.getElementById('provider-btn-groq');
-            const instrEl = document.getElementById('provider-instructions');
 
             if (btnGemini && btnGroq) {
                 if (appState.provider === 'gemini') {
@@ -1034,33 +1036,25 @@
                 }
             }
 
-            if (instrEl) {
-                if (appState.provider === 'gemini') {
-                    instrEl.innerHTML = `
-                        <p class="font-semibold text-slate-800">Como pegar sua chave gratuita (Google Gemini):</p>
-                        <ol class="list-decimal pl-4 space-y-1">
-                            <li>Acesse <strong>aistudio.google.com</strong> com sua conta Google.</li>
-                            <li>Clique em <strong>"Get API key"</strong> no menu lateral.</li>
-                            <li>Crie uma chave (começa com <code>AIzaSy...</code>) e cole abaixo.</li>
-                        </ol>
-                    `;
-                } else {
-                    instrEl.innerHTML = `
-                        <p class="font-semibold text-slate-800">Como pegar sua chave gratuita (Groq Cloud):</p>
-                        <ol class="list-decimal pl-4 space-y-1">
-                            <li>Acesse <strong>console.groq.com/keys</strong> e faça login.</li>
-                            <li>Clique em <strong>"Create API Key"</strong> (começa com <code>gsk_...</code>).</li>
-                            <li>Suporta texto ultra-rápido e fotos (via <strong>Llama 4 Scout</strong>).</li>
-                        </ol>
-                    `;
-                }
+            if (persist) {
+                localStorage.setItem('estudo_ativo_provider', appState.provider);
+                updateApiStatusUI();
             }
+        }
 
-            appState.availableModels = [...DEFAULT_FALLBACK_MODELS[appState.provider]];
-            if (resetModel) {
-                appState.model = appState.availableModels[0].id;
+        function quickSwitchProviderOrSettings() {
+            const hasGroq = Boolean(appState.keys.groq);
+            const hasGemini = Boolean(appState.keys.gemini);
+
+            // Se ambas as chaves estão salvas, alterna com 1 clique direto pelo botão do topo!
+            if (hasGroq && hasGemini) {
+                const next = appState.provider === 'groq' ? 'gemini' : 'groq';
+                selectActiveProvider(next, true);
+                const label = next === 'groq' ? '⚡ Groq Cloud' : '✨ Google Gemini';
+                showToast(`Alternado para ${label}`, 'info');
+            } else {
+                switchTab('settings');
             }
-            populateModelSelect(appState.availableModels, appState.model);
         }
 
         function updateApiStatusUI(invalidReason = '') {
@@ -1073,70 +1067,47 @@
                 return;
             }
 
-            if (appState.apiKey) {
-                const label = appState.provider === 'groq' ? 'Groq Ativa' : 'API Ativa';
-                badge.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 transition active:scale-95';
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>${label}</span>`;
+            const hasActiveKey = Boolean(appState.keys[appState.provider]);
+            const hasBoth = Boolean(appState.keys.groq && appState.keys.gemini);
+
+            if (hasActiveKey) {
+                const label = appState.provider === 'groq' ? '⚡ Groq' : '✨ Gemini';
+                const switchHint = hasBoth ? ' ⇄' : '';
+                badge.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 transition active:scale-95';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>${label}${switchHint}</span>`;
             } else {
                 badge.className = 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 transition active:scale-95';
                 badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>Configurar API</span>`;
             }
         }
 
-        async function fetchAvailableModels(showFeedback = false) {
-            const feedbackEl = document.getElementById('models-feedback-text');
-            if (!appState.apiKey) {
-                if (showFeedback) showToast('Cole sua chave de API antes de testar.', 'warning');
-                return;
-            }
+        async function fetchAvailableModelsFor(provider) {
+            const key = appState.keys[provider];
+            if (!key) return;
 
             try {
-                if (feedbackEl && showFeedback) {
-                    feedbackEl.textContent = 'Consultando modelos disponíveis na sua conta...';
-                    feedbackEl.className = 'text-[11px] text-indigo-600 mt-1.5 font-medium';
-                }
-
-                if (appState.provider === 'groq') {
+                if (provider === 'groq') {
                     const res = await fetch('https://api.groq.com/openai/v1/models', {
-                        headers: { 'Authorization': `Bearer ${appState.apiKey}` }
+                        headers: { 'Authorization': `Bearer ${key}` }
                     });
+                    if (!res.ok) return;
                     const data = await res.json();
-                    if (!res.ok) {
-                        throw new Error(data?.error?.message || 'Chave Groq inválida ou sem permissão.');
-                    }
-
                     const rawModels = (data.data || [])
                         .filter(m => m.id && !/whisper|guard|tts|embed/i.test(m.id))
                         .map(m => ({ id: m.id, displayName: m.id }));
 
                     if (rawModels.length > 0) {
-                        // Prioriza openai/gpt-oss-20b e modelos principais no topo
                         rawModels.sort((a, b) => {
                             const score = id => id === 'openai/gpt-oss-20b' ? 5 : (/gpt-oss/i.test(id) ? 4 : (/llama-4|scout|maverick/i.test(id) ? 3 : (/70b/i.test(id) ? 2 : 1)));
                             return score(b.id) - score(a.id);
                         });
-                        appState.availableModels = rawModels;
-                        if (!rawModels.some(m => m.id === appState.model)) {
-                            appState.model = rawModels[0].id;
-                            localStorage.setItem('estudo_ativo_model', appState.model);
-                        }
-                        populateModelSelect(appState.availableModels, appState.model);
+                        appState.availableModels.groq = rawModels;
+                        populateProviderSelect('groq', rawModels, appState.models.groq);
                     }
-
-                    updateApiStatusUI();
-                    if (feedbackEl) {
-                        feedbackEl.textContent = `✓ Conexão Groq ativa! ${rawModels.length} modelo(s) carregado(s).`;
-                        feedbackEl.className = 'text-[11px] text-emerald-600 mt-1.5 font-medium';
-                    }
-                    if (showFeedback) showToast('Chave Groq validada com sucesso!', 'success');
-
                 } else {
-                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(appState.apiKey)}`);
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+                    if (!res.ok) return;
                     const data = await res.json();
-                    if (!res.ok) {
-                        throw new Error(data?.error?.message || 'Chave Gemini inválida.');
-                    }
-
                     const validModels = (data.models || [])
                         .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
                         .filter(m => /gemini/i.test(m.name) && !/embedding|imagen|veo|aqa|tts/i.test(m.name))
@@ -1150,80 +1121,60 @@
                             const score = id => /2\.5-flash$/i.test(id) ? 4 : (/flash/i.test(id) ? 3 : 1);
                             return score(b.id) - score(a.id);
                         });
-                        appState.availableModels = validModels;
-                        if (!validModels.some(m => m.id === appState.model)) {
-                            appState.model = validModels[0].id;
-                            localStorage.setItem('estudo_ativo_model', appState.model);
-                        }
-                        populateModelSelect(appState.availableModels, appState.model);
+                        appState.availableModels.gemini = validModels;
+                        populateProviderSelect('gemini', validModels, appState.models.gemini);
                     }
-
-                    updateApiStatusUI();
-                    if (feedbackEl) {
-                        feedbackEl.textContent = `✓ Conexão Gemini ativa! ${validModels.length} modelo(s) disponível(is).`;
-                        feedbackEl.className = 'text-[11px] text-emerald-600 mt-1.5 font-medium';
-                    }
-                    if (showFeedback) showToast('Chave Gemini validada com sucesso!', 'success');
                 }
             } catch (err) {
-                const isNetworkOrCors = err instanceof TypeError || /failed to fetch|networkerror/i.test(err.message);
-                if (isNetworkOrCors) {
-                    // Mantém os modelos padrão carregados e não bloqueia a chave quando o navegador/sandbox restringe /models
-                    populateModelSelect(appState.availableModels, appState.model);
-                    updateApiStatusUI();
-                    if (feedbackEl) {
-                        feedbackEl.textContent = '⚠️ Não foi possível listar os modelos online (restrição de rede/CORS neste ambiente). Os modelos padrão foram mantidos.';
-                        feedbackEl.className = 'text-[11px] text-amber-600 mt-1.5 font-medium';
-                    }
-                    if (showFeedback) showToast('Configuração salva! Usando lista de modelos padrão.', 'warning');
-                    return;
-                }
-
-                console.error('Erro ao validar chave:', err);
-                updateApiStatusUI(err.message);
-                if (feedbackEl) {
-                    feedbackEl.textContent = `Erro: ${err.message}`;
-                    feedbackEl.className = 'text-[11px] text-rose-600 mt-1.5 font-medium';
-                }
-                if (showFeedback) showToast(`Falha na chave: ${err.message}`, 'error');
+                // Silencioso: mantém modelos padrão caso haja restrição de rede
             }
         }
 
         async function saveSettings() {
-            const keyInput = document.getElementById('api-key-input');
-            const selectEl = document.getElementById('model-select');
-            const customInputEl = document.getElementById('custom-model-input');
+            const groqKey = sanitizeApiKey(document.getElementById('groq-key-input')?.value || '');
+            const geminiKey = sanitizeApiKey(document.getElementById('gemini-key-input')?.value || '');
+            const groqModel = document.getElementById('groq-model-select')?.value || appState.models.groq;
+            const geminiModel = document.getElementById('gemini-model-select')?.value || appState.models.gemini;
+            const autoFallback = Boolean(document.getElementById('auto-fallback-checkbox')?.checked);
 
-            const cleanKey = sanitizeApiKey(keyInput?.value || '');
-            if (!cleanKey) {
-                showToast('Por favor, insira uma chave de API válida.', 'error');
+            if (!groqKey && !geminiKey) {
+                showToast('Insira pelo menos uma chave de API (Groq ou Gemini).', 'error');
                 return;
             }
 
-            if (cleanKey.startsWith('gsk_')) {
-                selectProvider('groq', false);
-            } else if (cleanKey.startsWith('AIza')) {
-                selectProvider('gemini', false);
+            appState.keys.groq = groqKey;
+            appState.keys.gemini = geminiKey;
+            appState.models.groq = groqModel;
+            appState.models.gemini = geminiModel;
+            appState.autoFallback = autoFallback;
+
+            // Se o provedor selecionado não tiver chave, muda automaticamente para o que tiver chave salva
+            if (!appState.keys[appState.provider]) {
+                appState.provider = groqKey ? 'groq' : 'gemini';
             }
 
-            let chosenModel = selectEl?.value || appState.model;
-            if (chosenModel === 'CUSTOM') {
-                chosenModel = (customInputEl?.value || '').trim();
-                if (!chosenModel) {
-                    showToast('Digite o nome do modelo personalizado.', 'warning');
-                    return;
-                }
-            }
-
-            appState.apiKey = cleanKey;
-            appState.model = chosenModel;
-
-            localStorage.setItem('estudo_ativo_api_key', appState.apiKey);
+            localStorage.setItem('estudo_ativo_groq_key', groqKey);
+            localStorage.setItem('estudo_ativo_gemini_key', geminiKey);
+            localStorage.setItem('estudo_ativo_groq_model', groqModel);
+            localStorage.setItem('estudo_ativo_gemini_model', geminiModel);
             localStorage.setItem('estudo_ativo_provider', appState.provider);
-            localStorage.setItem('estudo_ativo_model', appState.model);
+            localStorage.setItem('estudo_ativo_auto_fallback', String(autoFallback));
 
+            selectActiveProvider(appState.provider, false);
+            updateSavedBadges();
             updateApiStatusUI();
-            await fetchAvailableModels(true);
+
+            const feedbackEl = document.getElementById('models-feedback-text');
+            if (feedbackEl) {
+                const count = (groqKey ? 1 : 0) + (geminiKey ? 1 : 0);
+                feedbackEl.textContent = `✓ ${count} chave(s) salva(s)! Provedor ativo: ${appState.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini'}.`;
+                feedbackEl.className = 'text-[11px] text-emerald-600 mt-1 font-medium';
+            }
+
+            showToast('Chaves e preferências salvas com sucesso!', 'success');
+
+            if (groqKey) fetchAvailableModelsFor('groq');
+            if (geminiKey) fetchAvailableModelsFor('gemini');
         }
 
         // ==========================================
@@ -1239,7 +1190,11 @@
             if (!file) return;
 
             if (appState.provider === 'groq' && file.type === 'application/pdf') {
-                showToast('A API da Groq não lê PDF direto. Use foto/print ou alterne para Gemini em Ajustes.', 'warning');
+                if (appState.keys.gemini) {
+                    showToast('PDF detectado: usando sua chave Gemini salva automaticamente.', 'info');
+                } else {
+                    showToast('A Groq não lê PDF direto. Use foto/print ou salve uma chave Gemini.', 'warning');
+                }
             }
 
             const reader = new FileReader();
@@ -1290,30 +1245,32 @@
         function resetStudyForm() {
             removeSelectedFile();
             const txt = document.getElementById('user-prompt-text');
-            if (txt) txt.value = '';
+            if (txt) {
+                txt.value = '';
+                txt.style.height = '';
+            }
             document.getElementById('result-workspace')?.classList.add('hidden');
             document.getElementById('btn-clear-input')?.classList.add('hidden');
             appState.currentQuestionId = null;
         }
 
         // ==========================================
-        // CHAMADA UNIFICADA À IA (GEMINI + GROQ)
+        // CHAMADA UNIFICADA À IA COM FALLBACK ENTRE PROVEDORES
         // ==========================================
-        async function callAIWithRetry(promptText, fileObj = null) {
-            if (!appState.apiKey) {
-                switchTab('settings');
-                throw new Error('Configure sua chave de API primeiro.');
+        async function callSingleProvider(provider, promptText, fileObj = null) {
+            const apiKey = appState.keys[provider];
+            if (!apiKey) {
+                throw new Error(`Chave do ${provider === 'groq' ? 'Groq' : 'Gemini'} não configurada.`);
             }
 
-            if (appState.provider === 'groq') {
+            if (provider === 'groq') {
                 if (fileObj && fileObj.mimeType === 'application/pdf') {
-                    throw new Error('A Groq não suporta leitura direta de PDF. Tire um print/foto ou use sua chave do Google Gemini.');
+                    throw new Error('A Groq não suporta leitura direta de PDF.');
                 }
 
-                // Monta fila de modelos Groq (se houver imagem, prioriza modelos vision como Llama 4 Scout)
                 const queue = [];
                 if (fileObj && fileObj.mimeType.startsWith('image/')) {
-                    const visionCandidates = appState.availableModels
+                    const visionCandidates = appState.availableModels.groq
                         .map(m => m.id)
                         .filter(id => /llama-4|scout|maverick|vision/i.test(id));
                     if (visionCandidates.length > 0) {
@@ -1322,7 +1279,7 @@
                         queue.push('meta-llama/llama-4-scout-17b-16e-instruct');
                     }
                 }
-                if (!queue.includes(appState.model)) queue.push(appState.model);
+                if (!queue.includes(appState.models.groq)) queue.push(appState.models.groq);
                 DEFAULT_FALLBACK_MODELS.groq.forEach(m => {
                     if (!queue.includes(m.id)) queue.push(m.id);
                 });
@@ -1336,63 +1293,46 @@
                           ]
                         : promptText;
 
-                    const payloadStr = JSON.stringify({
-                        model: modelId,
-                        messages: [{ role: 'user', content: userContent }],
-                        temperature: 0.35
-                    });
+                    try {
+                        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${apiKey}`
+                            },
+                            body: JSON.stringify({
+                                model: modelId,
+                                messages: [{ role: 'user', content: userContent }],
+                                temperature: 0.35
+                            })
+                        });
 
-                    // Em ambientes sandbox/blob:, a Groq bloqueia Origin: null/blob diretamente;
-                    // prioriza túnel CORS apenas dentro do preview blob: e usa conexão direta no navegador normal.
-                    const isSandboxBlob = window.location.protocol === 'blob:' || window.location.origin === 'null';
-                    const endpoints = isSandboxBlob
-                        ? [
-                            'https://corsproxy.io/?url=' + encodeURIComponent('https://api.groq.com/openai/v1/chat/completions'),
-                            'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.groq.com/openai/v1/chat/completions')
-                          ]
-                        : [
-                            'https://api.groq.com/openai/v1/chat/completions'
-                          ];
-
-                    for (const endpoint of endpoints) {
+                        const rawText = await response.text();
+                        let data = null;
                         try {
-                            const response = await fetch(endpoint, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${appState.apiKey}`
-                                },
-                                body: payloadStr
-                            });
-
-                            const rawText = await response.text();
-                            let data = null;
-                            try {
-                                data = JSON.parse(rawText);
-                            } catch (e) {
-                                throw new Error('Resposta inválida do servidor.');
-                            }
-
-                            if (!response.ok) {
-                                const msg = data?.error?.message || `Erro HTTP ${response.status}`;
-                                lastError = new Error(msg);
-                                if (response.status === 401) throw lastError;
-                                break;
-                            }
-
-                            const text = data?.choices?.[0]?.message?.content;
-                            if (text) return text;
-                        } catch (err) {
-                            lastError = err;
-                            if (/invalid api key|401/i.test(err.message)) throw err;
+                            data = JSON.parse(rawText);
+                        } catch (e) {
+                            throw new Error(`Resposta inesperada da Groq (HTTP ${response.status}).`);
                         }
+
+                        if (!response.ok) {
+                            const msg = data?.error?.message || `Erro HTTP ${response.status} na Groq`;
+                            lastError = new Error(msg);
+                            if (response.status === 401) throw lastError;
+                            continue;
+                        }
+
+                        const text = data?.choices?.[0]?.message?.content;
+                        if (text) return text;
+                    } catch (err) {
+                        lastError = err;
+                        if (/invalid api key|401/i.test(err.message)) throw err;
                     }
                 }
-                throw new Error('O sandbox deste preview bloqueia conexões externas para a Groq. Clique em "Baixar Aplicativo Offline (.html)" na aba Ajustes e abra o arquivo no Safari/Chrome para usar a Groq sem bloqueios!');
+                throw lastError || new Error('Limite ou falha nos modelos da Groq.');
             } else {
-                // Provedor Google Gemini
-                const queue = [appState.model];
-                appState.availableModels.forEach(m => {
+                const queue = [appState.models.gemini];
+                appState.availableModels.gemini.forEach(m => {
                     if (/flash/i.test(m.id) && !queue.includes(m.id)) queue.push(m.id);
                 });
                 DEFAULT_FALLBACK_MODELS.gemini.forEach(m => {
@@ -1413,7 +1353,7 @@
                 for (const modelId of queue) {
                     try {
                         const response = await fetch(
-                            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelId)}:generateContent?key=${encodeURIComponent(appState.apiKey)}`,
+                            `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelId)}:generateContent?key=${encodeURIComponent(apiKey)}`,
                             {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -1426,32 +1366,49 @@
 
                         const data = await response.json();
                         if (!response.ok) {
-                            const msg = data?.error?.message || `Erro HTTP ${response.status}`;
+                            const msg = data?.error?.message || `Erro HTTP ${response.status} no Gemini`;
                             lastError = new Error(msg);
-                            if (response.status === 400 && /API key not valid/i.test(msg)) {
-                                updateApiStatusUI(msg);
-                                throw lastError;
-                            }
-                            if (response.status === 503) {
-                                await new Promise(r => setTimeout(r, 1500));
-                            }
+                            if (response.status === 400 && /API key not valid/i.test(msg)) throw lastError;
+                            if (response.status === 503) await new Promise(r => setTimeout(r, 1500));
                             continue;
                         }
 
                         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (text) {
-                            if (modelId !== appState.model && !fileObj) {
-                                appState.model = modelId;
-                                localStorage.setItem('estudo_ativo_model', modelId);
-                            }
-                            return text;
-                        }
+                        if (text) return text;
                     } catch (err) {
                         lastError = err;
                         if (/API key not valid/i.test(err.message)) throw err;
                     }
                 }
-                throw lastError || new Error('Todos os modelos Gemini atingiram o limite ou falharam.');
+                throw lastError || new Error('Limite ou falha nos modelos do Gemini.');
+            }
+        }
+
+        async function callAIWithRetry(promptText, fileObj = null) {
+            if (!appState.keys.groq && !appState.keys.gemini) {
+                switchTab('settings');
+                throw new Error('Configure pelo menos uma chave de API (Groq ou Gemini).');
+            }
+
+            // Se for PDF e houver chave Gemini salva, prioriza Gemini automaticamente
+            let primary = appState.provider;
+            if (fileObj && fileObj.mimeType === 'application/pdf' && appState.keys.gemini) {
+                primary = 'gemini';
+            } else if (!appState.keys[primary]) {
+                primary = appState.keys.groq ? 'groq' : 'gemini';
+            }
+
+            const secondary = primary === 'groq' ? 'gemini' : 'groq';
+
+            try {
+                return await callSingleProvider(primary, promptText, fileObj);
+            } catch (primaryErr) {
+                // Se o fallback automático estiver ativado e a outra chave estiver salva, tenta o outro provedor!
+                if (appState.autoFallback && appState.keys[secondary]) {
+                    showToast(`${primary === 'groq' ? 'Groq' : 'Gemini'} indisponível/no limite. Alternando para ${secondary === 'groq' ? 'Groq' : 'Gemini'}...`, 'warning');
+                    return await callSingleProvider(secondary, promptText, fileObj);
+                }
+                throw primaryErr;
             }
         }
 
