@@ -361,11 +361,13 @@
                         </button>
                     </div>
 
-                    <div class="pt-1">
-                        <div class="flex gap-2">
-                            <input type="text" id="followup-input" placeholder="Ficou com dúvida? Pergunte ao professor..." class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" onkeypress="if(event.key==='Enter') askFollowup()">
-                            <button type="button" onclick="askFollowup()" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
+                    <div class="pt-1 space-y-2">
+                        <textarea id="followup-input" rows="3" oninput="autoResizeFollowup(this)" onkeydown="if((event.ctrlKey || event.metaKey) && event.key==='Enter') askFollowup()" placeholder="Ficou com dúvida? Escreva sua pergunta detalhada ao professor aqui (pode pular linhas normalmente)..." class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm leading-relaxed focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-y min-h-[88px]"></textarea>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] text-slate-400">Dica: Ctrl + Enter envia</span>
+                            <button type="button" onclick="askFollowup()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95">
                                 <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                                <span>Perguntar ao Professor</span>
                             </button>
                         </div>
                     </div>
@@ -783,7 +785,11 @@
                 document.getElementById('btn-clear-input')?.classList.remove('hidden');
             }
         }
-
+        function autoResizeFollowup(el) {
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = Math.max(88, el.scrollHeight) + 'px';
+        }
         function escapeHTML(str) {
             return String(str || '').replace(/[&<>"']/g, m => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -1889,6 +1895,7 @@ Contexto:\n${appState.currentRawAnalysis}`;
             if (!question || !appState.currentRawAnalysis) return;
 
             input.value = '';
+            input.style.height = '';
             const container = document.getElementById('deep-dive-container');
             
             const userBubble = `
