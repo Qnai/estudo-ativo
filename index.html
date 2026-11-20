@@ -1329,6 +1329,19 @@
         }
 
         // ==========================================
+        // REGRAS DE BLINDAGEM CONTRA ALUCINAÇÃO E VIÉS
+        // ==========================================
+        const ANTI_HALLUCINATION_SYSTEM_RULES = `Você é um tutor especialista em concursos públicos, rigoroso com a norma culta, a lei seca e a jurisprudência das bancas examinadoras.
+
+REGRAS CRÍTICAS E OBRIGATÓRIAS (SIGA À RISCA):
+1. RACIOCÍNIO OCULTO ANTES DO VEREDITO: Sempre que for corrigir uma questão, abra OBRIGATORIAMENTE uma tag <raciocinio> no início da resposta (antes de qualquer título ou veredito). Dentro de <raciocinio>, resolva a questão de forma 100% fria, técnica e independente, analisando cada alternativa segundo a norma-padrão e o texto fornecido, IGNORANDO completamente qual letra o aluno marcou e IGNORANDO o nível de confiança dele (Convicto, Impreciso ou Chute). Feche </raciocinio> antes de escrever o diagnóstico final.
+2. PROIBIDO SER INDUZIDO PELA CONFIANÇA DO ALUNO: O nível de confiança ("Impreciso", "Chute" ou "Convicto") serve APENAS para adaptar o tom pedagógico depois que você já descobriu o gabarito real. NUNCA presuma que o aluno errou só porque marcou "Impreciso" ou "Chute", e NUNCA concorde com um erro só porque ele marcou "Convicto".
+3. PROIBIDO INVENTAR ANULAÇÃO: Nunca afirme que uma questão foi "anulada", "não possui resposta" ou tem "erro de elaboração", salvo se isso constar expressamente na imagem/texto. Se a classificação gramatical clássica de uma palavra (ex.: causa/explicação) não aparecer entre as alternativas, avalie o valor discursivo/semântico contextual do período (ex.: conclusão/fechamento de ideia) entre as opções disponíveis.
+4. TRAVA DE CONTEXTO FALTANTE: Se a questão exigir interpretação de um texto-base, parágrafo ou período anterior que NÃO foi enviado no enunciado nem na imagem, avise explicitamente no início do Diagnóstico: "⚠️ Atenção: O texto-base anterior não foi enviado junto com o enunciado; a análise abaixo considera apenas o trecho isolado." — sem inventar contextos fictícios.
+5. VISÃO DE PRINT (QCONCURSOS / PLATAFORMAS): Se a imagem enviada já exibir uma alternativa destacada em verde ou com ícone de acerto/gabarito oficial, acate essa alternativa como o gabarito oficial definitivo da banca e explique a lógica cobrada por ela.
+6. EXCEÇÕES GRAMATICAIS CLÁSSICAS: Ao analisar grau dos adjetivos, lembre-se da norma culta: na comparação de DUAS QUALIDADES de um MESMO SER, usa-se obrigatoriamente a forma analítica ("mais bom", "mais mau", "mais grande", "mais pequeno") e NUNCA "mais bem/mais mal" (que só se aplicam antes de particípios).`;
+
+        // ==========================================
         // ANÁLISE PRINCIPAL (MODO QUESTÃO OU MODO AULA PROFESSOR)
         // ==========================================
         async function analyzeQuestion() {
@@ -1358,13 +1371,13 @@
             if (contentEl) contentEl.innerHTML = '';
 
             if (loadingTitle) loadingTitle.textContent = isLesson ? 'O Professor está preparando sua aula...' : 'Corrigindo sua resposta...';
-            if (loadingSub) loadingSub.textContent = isLesson ? 'Estruturando explicação progressiva, exemplos práticos, gatilhos mentais e pegadinhas.' : 'Gerando diagnóstico de confiança e esquema visual.';
+            if (loadingSub) loadingSub.textContent = isLesson ? 'Estruturando explicação progressiva, exemplos práticos, gatilhos mentais e pegadinhas.' : 'Verificando norma culta, banca e gerando esquema visual.';
             if (wsHeader) wsHeader.textContent = isLesson ? '🎓 Aula do Professor' : 'Correção & Esquema';
 
-            let systemPrompt = '';
+            let userPrompt = '';
 
             if (isLesson) {
-                systemPrompt = `Assuma o papel de um PROFESSOR ESPECIALISTA EM CONCURSOS PÚBLICOS (estilo mentoria individual clara, didática, acolhedora e objetiva, sem paredões de texto).
+                userPrompt = `Assuma o papel de um PROFESSOR ESPECIALISTA EM CONCURSOS PÚBLICOS (estilo mentoria individual clara, didática, acolhedora e objetiva, sem paredões de texto).
 Com base no tema solicitado e/ou no material/PDF anexado pelo aluno, dê uma AULA COMPLETA E PROGRESSIVA seguindo ESTRITAMENTE esta estrutura visual em Markdown:
 
 MATERIA: [Disciplina Principal em maiúsculas] - [Tema Específico da Aula]
@@ -1393,11 +1406,16 @@ RESUMO_ENUNCIADO: Aula: [Título objetivo do assunto estudado]
 ${extraText ? `\nPedido / Tema do Aluno:\n${extraText}` : ''}`;
             } else {
                 const attemptInstruction = userAttempt
-                    ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(O aluno respondeu: "${userAttempt}" marcando o nível de confiança: "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!**, compare a resposta dele com o gabarito oficial e faça uma análise diagnóstica específica considerando que ele estava "${confidenceLevel}" — ex: se errou estando Convicto, alerte sobre o ponto cego; se acertou no Chute, explique a regra para fixar).\n`
+                    ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(Compare o gabarito que você concluiu dentro de <raciocinio> com a resposta do aluno: "${userAttempt}" | Confiança: "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!** com base EXCLUSIVA na sua conclusão técnica, e faça uma análise diagnóstica considerando o nível "${confidenceLevel}" — ex: se acertou estando Impreciso/Chute, valide o acerto e explique a regra para dar segurança; se errou estando Convicto, aponte o ponto cego).\n`
                     : '';
 
-                systemPrompt = `Você é um tutor especialista em concursos públicos, focado em aprendizagem visual e altamente escaneável (sem paredões de texto).
-Analise a questão enviada (imagem, PDF ou texto) e responda ESTRITAMENTE nesta estrutura visual em Markdown:
+                userPrompt = `Analise a questão enviada (imagem, PDF ou texto) e responda ESTRITAMENTE nesta estrutura visual em Markdown (iniciando obrigatoriamente pelo bloco oculto <raciocinio>...</raciocinio>):
+
+<raciocinio>
+1. Leia o enunciado e cada alternativa (A, B, C, D, E ou Certo/Errado) sem considerar a tentativa do aluno.
+2. Teste cada opção rigorosamente contra a norma culta, a lei ou a interpretação textual.
+3. Defina qual é a única alternativa tecnicamente correta.
+</raciocinio>
 
 MATERIA: [Disciplina Principal em maiúsculas] - [Tópico Específico]
 RESUMO_ENUNCIADO: [Resumo fiel do enunciado em 1 ou 2 linhas]
@@ -1407,7 +1425,7 @@ ${attemptInstruction}
 - **Fluxo Lógico:** \`[Regra Geral]\` ➔ \`[Exceção / Condição]\` ➔ \`[Resultado na Questão]\`
 
 ### 🔍 Raio-X das Alternativas
-(Liste cada alternativa ou item começando exatamente com ✅ para a correta ou ❌ para as incorretas, explicando de forma objetiva o porquê)
+(Liste cada alternativa ou item começando exatamente com ✅ para a correta ou ❌ para as incorretas, explicando de forma objetiva o porquê, em total coerência com o gabarito definido acima)
 - ✅ **Item Correto:** ...
 - ❌ **Item Incorreto:** ...
 
@@ -1423,8 +1441,9 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
             let lastRenderTime = 0;
 
             try {
-                const rawResponse = await callAIWithRetry(systemPrompt, appState.currentFile, (partialText) => {
-                    if (!streamStarted && partialText.trim().length > 15) {
+                const rawResponse = await callAIWithRetry(userPrompt, appState.currentFile, (partialText) => {
+                    const { subject, cleanMarkdown } = extractSubjectAndCleanText(partialText);
+                    if (!streamStarted && cleanMarkdown.trim().length > 15) {
                         streamStarted = true;
                         loading?.classList.add('hidden');
                         workspace?.classList.remove('hidden');
@@ -1432,11 +1451,10 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
                     const now = Date.now();
                     if (streamStarted && now - lastRenderTime > 90) {
                         lastRenderTime = now;
-                        const { subject, cleanMarkdown } = extractSubjectAndCleanText(partialText);
                         if (badgeEl && subject !== 'Geral') badgeEl.textContent = subject;
                         renderVisualMarkdown(cleanMarkdown, contentEl);
                     }
-                });
+                }, ANTI_HALLUCINATION_SYSTEM_RULES);
 
                 const { subject, summary, cleanMarkdown } = extractSubjectAndCleanText(rawResponse);
 
@@ -1487,11 +1505,17 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
         }
 
         function extractSubjectAndCleanText(text) {
+            // Remove o bloco de pensamento oculto <raciocinio>...</raciocinio> (inclusive durante o streaming)
+            let withoutThought = String(text || '')
+                .replace(/<raciocinio>[\s\S]*?<\/raciocinio>/gi, '')
+                .replace(/<raciocinio>[\s\S]*$/gi, '')
+                .trim();
+
             let subject = 'Geral';
             let summary = '';
             let cleanLines = [];
 
-            const lines = text.split('\n');
+            const lines = withoutThought.split('\n');
             for (const line of lines) {
                 if (line.trim().startsWith('MATERIA:')) {
                     subject = line.replace('MATERIA:', '').trim();
@@ -1511,7 +1535,7 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
         // ==========================================
         // MOTOR DE IA MULTI-PROVEDOR
         // ==========================================
-        async function fetchWithTimeout(url, options, timeoutMs = 22000) {
+        async function fetchWithTimeout(url, options, timeoutMs = 25000) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), timeoutMs);
             try {
@@ -1591,7 +1615,7 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
             return fullText;
         }
 
-        async function callSingleProvider(provider, promptText, fileObj = null, onChunk = null) {
+        async function callSingleProvider(provider, promptText, fileObj = null, onChunk = null, systemInstructionText = '') {
             const apiKey = appState.keys[provider];
             if (!apiKey) {
                 throw new Error(`Chave de API do ${provider === 'groq' ? 'Groq' : 'Gemini'} não configurada.`);
@@ -1616,14 +1640,20 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
                           ]
                         : promptText;
 
+                    const messages = [];
+                    if (systemInstructionText) {
+                        messages.push({ role: 'system', content: systemInstructionText });
+                    }
+                    messages.push({ role: 'user', content: userContent });
+
                     const payload = {
                         model: modelName,
-                        messages: [{ role: 'user', content: userContent }],
-                        max_tokens: 3200,
+                        messages: messages,
+                        max_tokens: 3500,
                         stream: Boolean(onChunk)
                     };
                     if (!modelName.includes('gpt-oss')) {
-                        payload.temperature = 0.25;
+                        payload.temperature = 0.1;
                     }
 
                     try {
@@ -1634,7 +1664,7 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
                                 'Authorization': `Bearer ${apiKey}`
                             },
                             body: JSON.stringify(payload)
-                        }, 22000);
+                        }, 25000);
 
                         if (!response.ok) {
                             const errData = await response.json().catch(() => ({}));
@@ -1645,7 +1675,7 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
                         const text = await readOpenAIStream(response, onChunk);
                         if (text) return text;
                     } catch (e) {
-                        lastErr = e.name === 'AbortError' ? 'Tempo limite excedido (22s).' : (e.message || 'Erro de conexão.');
+                        lastErr = e.name === 'AbortError' ? 'Tempo limite excedido (25s).' : (e.message || 'Erro de conexão.');
                         continue;
                     }
                 }
@@ -1674,15 +1704,27 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
                     });
                 }
 
+                const requestBody = {
+                    contents: [{ parts }],
+                    generationConfig: {
+                        temperature: 0.1,
+                        topP: 0.8,
+                        maxOutputTokens: 4000
+                    }
+                };
+
+                if (systemInstructionText) {
+                    requestBody.systemInstruction = {
+                        parts: [{ text: systemInstructionText }]
+                    };
+                }
+
                 try {
                     const response = await fetchWithTimeout(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ parts }],
-                            generationConfig: { temperature: 0.25, maxOutputTokens: 3500 }
-                        })
-                    }, 25000);
+                        body: JSON.stringify(requestBody)
+                    }, 28000);
 
                     if (!response.ok) {
                         const errData = await response.json().catch(() => ({}));
@@ -1693,14 +1735,14 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
                     const text = await readGeminiStream(response, onChunk);
                     if (text) return text;
                 } catch (e) {
-                    lastGeminiErr = e.name === 'AbortError' ? 'Tempo limite excedido (25s).' : (e.message || 'Erro de conexão.');
+                    lastGeminiErr = e.name === 'AbortError' ? 'Tempo limite excedido (28s).' : (e.message || 'Erro de conexão.');
                     continue;
                 }
             }
             throw new Error(lastGeminiErr || 'Não foi possível obter resposta do Gemini.');
         }
 
-        async function callAIWithRetry(promptText, fileObj = null, onChunk = null) {
+        async function callAIWithRetry(promptText, fileObj = null, onChunk = null, systemInstructionText = '') {
             if (!appState.keys.groq && !appState.keys.gemini) {
                 switchTab('settings');
                 throw new Error('Configure sua chave de API na aba Ajustes primeiro.');
@@ -1714,20 +1756,20 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
             if (primary === 'groq' && fileObj && fileObj.mimeType === 'application/pdf') {
                 if (appState.keys.gemini) {
                     showToast('Usando chave Gemini salva para ler o PDF...', 'info');
-                    return await callSingleProvider('gemini', promptText, fileObj, onChunk);
+                    return await callSingleProvider('gemini', promptText, fileObj, onChunk, systemInstructionText);
                 } else {
                     throw new Error('Para ler PDFs, adicione sua chave gratuita do Google Gemini nos Ajustes.');
                 }
             }
 
             try {
-                return await callSingleProvider(primary, promptText, fileObj, onChunk);
+                return await callSingleProvider(primary, promptText, fileObj, onChunk, systemInstructionText);
             } catch (primaryErr) {
                 if (appState.autoFallback && appState.keys[secondary]) {
                     const secName = secondary === 'groq' ? 'Groq' : 'Gemini';
                     const priName = primary === 'groq' ? 'Groq' : 'Gemini';
                     showToast(`${priName} demorou/atingiu limite. Alternando para ${secName}...`, 'warning');
-                    return await callSingleProvider(secondary, promptText, fileObj, onChunk);
+                    return await callSingleProvider(secondary, promptText, fileObj, onChunk, systemInstructionText);
                 }
                 throw primaryErr;
             }
