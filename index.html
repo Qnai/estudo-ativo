@@ -1331,16 +1331,15 @@
         // ==========================================
         // REGRAS DE BLINDAGEM CONTRA ALUCINAÇÃO E VIÉS
         // ==========================================
-        const ANTI_HALLUCINATION_SYSTEM_RULES = `Você é um tutor especialista em concursos públicos, rigoroso com a norma culta, a lei seca e a jurisprudência das bancas examinadoras.
+        const ANTI_HALLUCINATION_SYSTEM_RULES = `Você é um tutor especialista em concursos públicos, rigoroso com a norma culta, a lei seca e a lógica das bancas examinadoras.
 
 REGRAS CRÍTICAS E OBRIGATÓRIAS (SIGA À RISCA):
-1. RACIOCÍNIO OCULTO ANTES DO VEREDITO: Sempre que for corrigir uma questão, abra OBRIGATORIAMENTE uma tag <raciocinio> no início da resposta (antes de qualquer título ou veredito). Dentro de <raciocinio>, resolva a questão de forma 100% fria, técnica e independente, analisando cada alternativa segundo a norma-padrão e o texto fornecido, IGNORANDO completamente qual letra o aluno marcou e IGNORANDO o nível de confiança dele (Convicto, Impreciso ou Chute). Feche </raciocinio> antes de escrever o diagnóstico final.
-2. PROIBIDO SER INDUZIDO PELA CONFIANÇA DO ALUNO: O nível de confiança ("Impreciso", "Chute" ou "Convicto") serve APENAS para adaptar o tom pedagógico depois que você já descobriu o gabarito real. NUNCA presuma que o aluno errou só porque marcou "Impreciso" ou "Chute", e NUNCA concorde com um erro só porque ele marcou "Convicto".
-3. PROIBIDO INVENTAR ANULAÇÃO: Nunca afirme que uma questão foi "anulada", "não possui resposta" ou tem "erro de elaboração", salvo se isso constar expressamente na imagem/texto. Se a classificação gramatical clássica de uma palavra (ex.: causa/explicação) não aparecer entre as alternativas, avalie o valor discursivo/semântico contextual do período (ex.: conclusão/fechamento de ideia) entre as opções disponíveis.
-4. TRAVA DE CONTEXTO FALTANTE: Se a questão exigir interpretação de um texto-base, parágrafo ou período anterior que NÃO foi enviado no enunciado nem na imagem, avise explicitamente no início do Diagnóstico: "⚠️ Atenção: O texto-base anterior não foi enviado junto com o enunciado; a análise abaixo considera apenas o trecho isolado." — sem inventar contextos fictícios.
-5. VISÃO DE PRINT (QCONCURSOS / PLATAFORMAS): Se a imagem enviada já exibir uma alternativa destacada em verde ou com ícone de acerto/gabarito oficial, acate essa alternativa como o gabarito oficial definitivo da banca e explique a lógica cobrada por ela.
-6. EXCEÇÕES GRAMATICAIS CLÁSSICAS: Ao analisar grau dos adjetivos, lembre-se da norma culta: na comparação de DUAS QUALIDADES de um MESMO SER, usa-se obrigatoriamente a forma analítica ("mais bom", "mais mau", "mais grande", "mais pequeno") e NUNCA "mais bem/mais mal" (que só se aplicam antes de particípios).`;
-
+1. RACIOCÍNIO INDEPENDENTE ANTES DO VEREDITO: Sempre que for corrigir uma questão, abra OBRIGATORIAMENTE uma tag <raciocinio> no início da resposta. Dentro de <raciocinio>, analise todas as alternativas fornecidas de forma fria e técnica para descobrir o gabarito oficial SEM se deixar influenciar pela tentativa do aluno. Feche </raciocinio> antes de escrever o diagnóstico final.
+2. ESCOLHA FORÇADA ENTRE AS ALTERNATIVAS EXISTENTES (REGRA DE OURO): É TERMINANTEMENTE PROIBIDO dizer que "nenhuma alternativa está correta", que há "inconsistência nas alternativas", ou que a questão foi "anulada". Você DEVE OBRIGATORIAMENTE eleger UMA ÚNICA alternativa dentre as letras fornecidas (A, B, C, D ou E, ou Certo/Errado) como a resposta correta (✅).
+3. SENTIDO DISCURSIVO EM COESÃO/INTERPRETAÇÃO: Em questões de interpretação ou coesão textual, se a função gramatical isolada de uma conjunção (ex.: causa/explicação para "Porque") não constar entre as opções, identifique qual das opções fornecidas corresponde ao efeito de sentido discursivo no período (ex.: "Porque, na realidade..." fechando um argumento equivale a CONCLUSÃO/fechamento de raciocínio) e marque essa alternativa como ✅ correta.
+4. LEITURA OBRIGATÓRIA DA TENTATIVA DO ALUNO NO DIAGNÓSTICO: Quando o prompt informar a "TENTATIVA DO ALUNO" e o "NÍVEL DE CONFIANÇA", você DEVE OBRIGATORIAMENTE citar a resposta que ele marcou e o nível de confiança dele no bloco "Diagnóstico da Sua Tentativa". Nunca diga que ele não informou a resposta quando ela estiver presente no prompt. O nível de confiança ("Impreciso", "Chute" ou "Convicto") nunca altera o gabarito; serve apenas para personalizar o conselho pedagógico.
+5. VISÃO DE PRINT (QCONCURSOS / PLATAFORMAS): Se a imagem enviada já exibir uma alternativa destacada em verde ou com ícone de acerto/gabarito oficial, acate essa alternativa como o gabarito oficial definitivo da banca.
+6. EXCEÇÕES GRAMATICAIS CLÁSSICAS: Na comparação de DUAS QUALIDADES de um MESMO SER, usa-se obrigatoriamente a forma analítica ("mais bom", "mais mau", "mais grande", "mais pequeno") e NUNCA "mais bem/mais mal" (que só se aplicam antes de particípios).`;
         // ==========================================
         // ANÁLISE PRINCIPAL (MODO QUESTÃO OU MODO AULA PROFESSOR)
         // ==========================================
@@ -1404,17 +1403,17 @@ RESUMO_ENUNCIADO: Aula: [Título objetivo do assunto estudado]
 (Encerre no papel de professor perguntando de forma amigável se o aluno compreendeu os pontos principais, destacando qual distinção merece mais atenção e convidando-o a tirar dúvidas abaixo antes de partir para as questões).
 
 ${extraText ? `\nPedido / Tema do Aluno:\n${extraText}` : ''}`;
-            } else {
+           } else {
                 const attemptInstruction = userAttempt
-                    ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(Compare o gabarito que você concluiu dentro de <raciocinio> com a resposta do aluno: "${userAttempt}" | Confiança: "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!** com base EXCLUSIVA na sua conclusão técnica, e faça uma análise diagnóstica considerando o nível "${confidenceLevel}" — ex: se acertou estando Impreciso/Chute, valide o acerto e explique a regra para dar segurança; se errou estando Convicto, aponte o ponto cego).\n`
+                    ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(OBRIGATÓRIO: O aluno informou abaixo a tentativa "${userAttempt}" com nível de confiança "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!**, cite expressamente que ele marcou "${userAttempt}" com confiança "${confidenceLevel}", compare com o gabarito definido em <raciocinio> e dê um feedback específico para esse nível de confiança).\n`
                     : '';
 
                 userPrompt = `Analise a questão enviada (imagem, PDF ou texto) e responda ESTRITAMENTE nesta estrutura visual em Markdown (iniciando obrigatoriamente pelo bloco oculto <raciocinio>...</raciocinio>):
 
 <raciocinio>
-1. Leia o enunciado e cada alternativa (A, B, C, D, E ou Certo/Errado) sem considerar a tentativa do aluno.
-2. Teste cada opção rigorosamente contra a norma culta, a lei ou a interpretação textual.
-3. Defina qual é a única alternativa tecnicamente correta.
+1. Leia o enunciado e cada alternativa (A, B, C, D, E ou Certo/Errado) de forma independente.
+2. Teste cada opção rigorosamente contra a norma culta, a lei ou o sentido discursivo/textual.
+3. Escolha obrigatoriamente UMA única letra/opção como gabarito correto.
 </raciocinio>
 
 MATERIA: [Disciplina Principal em maiúsculas] - [Tópico Específico]
@@ -1425,7 +1424,7 @@ ${attemptInstruction}
 - **Fluxo Lógico:** \`[Regra Geral]\` ➔ \`[Exceção / Condição]\` ➔ \`[Resultado na Questão]\`
 
 ### 🔍 Raio-X das Alternativas
-(Liste cada alternativa ou item começando exatamente com ✅ para a correta ou ❌ para as incorretas, explicando de forma objetiva o porquê, em total coerência com o gabarito definido acima)
+(Liste cada alternativa ou item começando exatamente com ✅ para a única correta ou ❌ para as incorretas, explicando de forma objetiva o porquê)
 - ✅ **Item Correto:** ...
 - ❌ **Item Incorreto:** ...
 
@@ -1434,7 +1433,7 @@ ${attemptInstruction}
 
 > ⚠️ **Pegadinha de Banca:** [Destaque o detalhe que mais derruba candidatos nesse tema]
 
-${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
+${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}${userAttempt ? `\n\nDADOS DA TENTATIVA DO ALUNO (USE NO DIAGNÓSTICO):\n- Alternativa/Resposta marcada pelo aluno: ${userAttempt}\n- Nível de confiança marcado: ${confidenceLevel}` : ''}`;
             }
 
             let streamStarted = false;
