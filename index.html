@@ -1806,7 +1806,7 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}${u
             const loaderId = 'asset-loader-' + Date.now();
             
             const titles = {
-                mindmap: '🗺️ Mapa Mental Estruturado',
+                mindmap: '🗺️ Mapa Mental em Árvore',
                 flashcards: '🃏 Flashcards de Memorização Ativa',
                 simulado: '📝 Questões Inéditas para Treino'
             };
@@ -1821,7 +1821,19 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}${u
 
             let prompt = '';
             if (type === 'mindmap') {
-                prompt = `Com base no conteúdo/aula abaixo, crie um MAPA MENTAL VISUAL EM ÁRVORE (diagrama ASCII/Unicode dentro de um único bloco de código \`\`\`) usando caracteres de ramificação (├──, └──, │) para conectar o Tema Central aos Ramos Principais, Sub-ramos, Gatilhos Mentais e Pegadinhas de Banca. Não use listas com marcadores fora do diagrama.\n\nContexto:\n${appState.currentRawAnalysis}`;
+                prompt = `Com base no conteúdo/aula abaixo, crie um MAPA MENTAL ESTRUTURADO.
+Responda APENAS um JSON válido (sem blocos de código markdown, sem texto antes ou depois) neste formato exato:
+{
+  "centro": "Título Central do Tema",
+  "ramos": [
+    {
+      "titulo": "Nome do Ramo Principal (ex: P - Presunção de Legitimidade)",
+      "itens": ["Ponto-chave 1", "Gatilho mental", "⚠️ Pegadinha de banca"]
+    }
+  ]
+}
+
+Contexto:\n${appState.currentRawAnalysis}`;
             } else if (type === 'flashcards') {
                 prompt = `Com base no conteúdo/aula abaixo, crie 4 FLASHCARDS de revisão ativa.
 Responda APENAS um JSON válido (sem blocos de código markdown, sem texto antes ou depois) neste formato exato:
@@ -1836,7 +1848,9 @@ Contexto:\n${appState.currentRawAnalysis}`;
                 const result = await callAIWithRetry(prompt);
                 document.getElementById(loaderId)?.remove();
 
-                if (type === 'flashcards') {
+                if (type === 'mindmap') {
+                    renderMindmapBlock(result, container);
+                } else if (type === 'flashcards') {
                     renderFlashcardsBlock(result, container);
                 } else {
                     const cardHtml = `
@@ -1857,6 +1871,56 @@ Contexto:\n${appState.currentRawAnalysis}`;
                 document.getElementById(loaderId)?.remove();
                 showToast('Erro ao gerar material: ' + error.message, 'error');
             }
+        }
+
+        function renderMindmapBlock(rawText, container) {
+            let data = null;
+            try {
+                const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                data = JSON.parse(cleaned);
+            } catch (e) {
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                        <span class="text-xs font-bold text-indigo-950">🗺️ Mapa Mental Estruturado</span>
+                        <div class="prose-study text-xs">${marked.parse(rawText)}</div>
+                    </div>`);
+                return;
+            }
+
+            const branchesHtml = (data.ramos || []).map(ramo => {
+                const itemsHtml = (ramo.itens || []).map(it => `
+                    <div class="flex items-start gap-2 text-xs text-slate-700 pl-3 border-l-2 border-indigo-200 py-0.5">
+                        <span class="text-indigo-400 font-bold">├─</span>
+                        <span>${escapeHTML(it)}</span>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="relative pl-4 border-l-2 border-indigo-400 space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 -ml-[21px] ring-4 ring-indigo-50"></span>
+                            <h4 class="text-xs font-extrabold text-indigo-950 bg-indigo-100/80 px-2.5 py-1 rounded-lg">${escapeHTML(ramo.titulo)}</h4>
+                        </div>
+                        <div class="space-y-1 pt-0.5">${itemsHtml}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const html = `
+                <div class="p-4 rounded-xl border border-indigo-200 bg-gradient-to-b from-indigo-50/60 to-white space-y-3.5 animate-fade-in">
+                    <div class="flex items-center justify-between border-b border-indigo-100 pb-2">
+                        <span class="text-xs font-bold text-indigo-950">🗺️ Mapa Mental em Árvore</span>
+                        <span class="text-[10px] font-semibold text-indigo-600">${(data.ramos || []).length} ramos</span>
+                    </div>
+                    <div class="bg-indigo-600 text-white text-xs font-extrabold px-3.5 py-2.5 rounded-xl text-center shadow-sm">
+                        🎯 ${escapeHTML(data.centro || 'Mapa Mental')}
+                    </div>
+                    <div class="space-y-3 pl-2 pt-1">
+                        ${branchesHtml}
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
         }
 
         function renderFlashcardsBlock(rawText, container) {
