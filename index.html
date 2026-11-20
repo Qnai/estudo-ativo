@@ -925,4 +925,1214 @@
                 updateCloudStatusBadge('syncing');
                 const res = await fetch(`${appState.supabaseUrl}/rest/v1/questoes`, {
                     method: 'POST',
-                    headers: {
+                    headers: { ...getSupabaseHeaders(), 'Prefer': 'resolution=merge-duplicates' },
+                    body: JSON.stringify({
+                        id: item.id,
+                        data: item,
+                        updated_at: new Date().toISOString()
+                    })
+                });
+                if (!res.ok) throw new Error('Falha ao salvar na nuvem');
+                updateCloudStatusBadge('connected');
+            } catch (e) {
+                updateCloudStatusBadge('error');
+            }
+        }
+
+        async function deleteItemFromCloud(id) {
+            if (!appState.supabaseUrl || !appState.supabaseKey) return;
+            try {
+                await fetch(`${appState.supabaseUrl}/rest/v1/questoes?id=eq.${encodeURIComponent(id)}`, {
+                    method: 'DELETE',
+                    headers: getSupabaseHeaders()
+                });
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // CICLO DE ARQUIVAMENTO POR MATÉRIA (DRIVE)
+        // ==========================================
+        function populateArchiveSelect() {
+            const sel = document.getElementById('archive-subject-select');
+            if (!sel) return;
+            const counts = {};
+            appState.notebook.forEach(item => {
+                const subj = (item.subject || 'Geral').split('-')[0].trim();
+                counts[subj] = (counts[subj] || 0) + 1;
+            });
+            sel.innerHTML = '<option value="">Selecione uma matéria para arquivar...</option>' +
+                Object.keys(counts).sort().map(s => `<option value="${escapeHTML(s)}">${escapeHTML(s)} (${counts[s]} questões)</option>`).join('');
+        }
+
+        function archiveSubjectToDrive() {
+            const subj = document.getElementById('archive-subject-select')?.value;
+            if (!subj) {
+                showToast('Selecione uma matéria na lista primeiro.', 'warning');
+                return;
+            }
+            const items = appState.notebook.filter(i => (i.subject || 'Geral').split('-')[0].trim() === subj);
+            if (!items.length) return;
+
+            const safeName = subj.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const dateTag = new Date().toISOString().slice(0, 10);
+
+            // 1. Baixa JSON restaurável
+            const jsonBlob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+            const jsonUrl = URL.createObjectURL(jsonBlob);
+            const a1 = document.createElement('a');
+            a1.href = jsonUrl;
+            a1.download = `arquivo-${safeName}-${dateTag}.json`;
+            a1.click();
+            URL.revokeObjectURL(jsonUrl);
+
+            // 2. Baixa Markdown formatado para leitura no Google Drive
+            let md = `# Arquivo de Estudos — ${subj}\nData do fechamento: ${new Date().toLocaleDateString('pt-BR')}\nTotal de questões: ${items.length}\n\n---\n\n`;
+            items.forEach((item, idx) => {
+                md += `## ${idx + 1}. ${item.subject} (${item.date})\n`;
+                if (item.userAttempt) md += `**Minha Tentativa:** ${item.userAttempt} (${item.confidenceLevel || ''})\n\n`;
+                if (item.summary) md += `**Enunciado:** ${item.summary}\n\n`;
+                if (item.note) md += `> **Minha Anotação:** ${item.note}\n\n`;
+                md += `${item.analysis}\n\n---\n\n`;
+            });
+            const mdBlob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const mdUrl = URL.createObjectURL(mdBlob);
+            const a2 = document.createElement('a');
+            a2.href = mdUrl;
+            a2.download = `caderno-${safeName}-${dateTag}.md`;
+            setTimeout(() => {
+                a2.click();
+                URL.revokeObjectURL(mdUrl);
+            }, 350);
+
+            showToast(`Arquivos de "${subj}" baixados! Salve na sua pasta do Google Drive.`, 'success');
+        }
+
+        async function purgeArchivedSubject() {
+            const subj = document.getElementById('archive-subject-select')?.value;
+            if (!subj) {
+                showToast('Selecione uma matéria na lista primeiro.', 'warning');
+                return;
+            }
+            const items = appState.notebook.filter(i => (i.subject || 'Geral').split('-')[0].trim() === subj);
+            if (!items.length) return;
+
+            if (!confirm(`Tem certeza que já salvou o backup de "${subj}" no Google Drive e deseja remover essas ${items.length} questões da nuvem ativa?`)) {
+                return;
+            }
+
+            for (const item of items) {
+                await deleteItemFromCloud(item.id);
+            }
+            appState.notebook = appState.notebook.filter(i => (i.subject || 'Geral').split('-')[0].trim() !== subj);
+            localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+            updateNotebookStats();
+            populateArchiveSelect();
+            renderNotebook();
+            showToast(`Matéria "${subj}" arquivada e removida da nuvem ativa!`, 'success');
+        }
+
+        // ==========================================
+        // NAVEGAÇÃO ENTRE ABAS
+        // ==========================================
+        function switchTab(tabName) {
+            ['study', 'notebook', 'settings'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                navBtn.classList.remove('text-indigo-600', 'font-semibold');
+                navBtn.classList.add('text-slate-400', 'font-medium');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            activeNav.classList.remove('text-slate-400', 'font-medium');
+            activeNav.classList.add('text-indigo-600', 'font-semibold');
+
+            if (tabName === 'notebook') {
+                renderNotebook();
+            } else if (tabName === 'settings') {
+                populateArchiveSelect();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // GERENCIAMENTO DAS CHAVES DE API (GROQ & GEMINI)
+        // ==========================================
+        function selectProvider(provider, persist = true) {
+            appState.provider = provider;
+            if (persist) {
+                localStorage.setItem('estudo_ai_provider', provider);
+            }
+
+            const btnGroq = document.getElementById('btn-provider-groq');
+            const btnGemini = document.getElementById('btn-provider-gemini');
+
+            if (provider === 'groq') {
+                btnGroq.className = 'py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 font-bold text-xs flex items-center justify-center gap-1.5 transition';
+                btnGemini.className = 'py-2.5 px-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs flex items-center justify-center gap-1.5 transition';
+            } else {
+                btnGemini.className = 'py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 font-bold text-xs flex items-center justify-center gap-1.5 transition';
+                btnGroq.className = 'py-2.5 px-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs flex items-center justify-center gap-1.5 transition';
+            }
+            updateSavedKeyBadges();
+            updateApiStatusBadge();
+        }
+
+        function updateSavedKeyBadges() {
+            const bGroq = document.getElementById('badge-saved-groq');
+            const bGemini = document.getElementById('badge-saved-gemini');
+            if (bGroq) bGroq.classList.toggle('hidden', !appState.keys.groq);
+            if (bGemini) bGemini.classList.toggle('hidden', !appState.keys.gemini);
+        }
+
+        function quickToggleProvider() {
+            if (!appState.keys.groq && !appState.keys.gemini) {
+                switchTab('settings');
+                return;
+            }
+            if (appState.provider === 'groq') {
+                if (appState.keys.gemini) {
+                    selectProvider('gemini', true);
+                    showToast('Alternado para Google Gemini!', 'success');
+                } else {
+                    switchTab('settings');
+                    showToast('Salve sua chave do Gemini nos Ajustes para alternar.', 'info');
+                }
+            } else {
+                if (appState.keys.groq) {
+                    selectProvider('groq', true);
+                    showToast('Alternado para Groq Cloud!', 'success');
+                } else {
+                    switchTab('settings');
+                    showToast('Salve sua chave da Groq nos Ajustes para alternar.', 'info');
+                }
+            }
+        }
+
+        function toggleInputVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function saveApiKey() {
+            const groqKey = (document.getElementById('api-key-groq')?.value || '').trim();
+            const geminiKey = (document.getElementById('api-key-gemini')?.value || '').trim();
+            const groqModel = document.getElementById('model-select-groq')?.value || 'openai/gpt-oss-20b';
+            const geminiModel = document.getElementById('model-select-gemini')?.value || 'gemini-2.5-flash';
+            const autoFallback = document.getElementById('auto-fallback-check')?.checked ?? true;
+
+            if (!groqKey && !geminiKey) {
+                showToast('Cole pelo menos uma chave de API (Groq ou Gemini).', 'warning');
+                return;
+            }
+
+            if (appState.provider === 'gemini' && !geminiKey) {
+                showToast('Cole sua chave AIzaSy... no campo do Google Gemini antes de salvar.', 'warning');
+                document.getElementById('api-key-gemini')?.focus();
+                return;
+            }
+            if (appState.provider === 'groq' && !groqKey) {
+                showToast('Cole sua chave gsk_... no campo da Groq Cloud antes de salvar.', 'warning');
+                document.getElementById('api-key-groq')?.focus();
+                return;
+            }
+
+            appState.keys.groq = groqKey;
+            appState.keys.gemini = geminiKey;
+            appState.models.groq = groqModel;
+            appState.models.gemini = geminiModel;
+            appState.autoFallback = autoFallback;
+
+            localStorage.setItem('estudo_key_groq', groqKey);
+            localStorage.setItem('estudo_key_gemini', geminiKey);
+            localStorage.setItem('estudo_model_groq', groqModel);
+            localStorage.setItem('estudo_model_gemini', geminiModel);
+            localStorage.setItem('estudo_auto_fallback', String(autoFallback));
+            localStorage.setItem('estudo_ai_provider', appState.provider);
+
+            selectProvider(appState.provider, true);
+            updateApiStatusBadge();
+
+            const savedCount = (groqKey ? 1 : 0) + (geminiKey ? 1 : 0);
+            const activeLabel = appState.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini';
+            const fb = document.getElementById('provider-save-feedback');
+            if (fb) {
+                fb.textContent = `✓ ${savedCount} chave(s) salva(s)! Provedor ativo: ${activeLabel}.`;
+                fb.classList.remove('hidden');
+            }
+            showToast(`${savedCount} chave(s) salva(s)! Ativo: ${activeLabel}`, 'success');
+        }
+
+        function updateApiStatusBadge() {
+            const badge = document.getElementById('api-status-badge');
+            if (!badge) return;
+            const activeKey = appState.keys[appState.provider];
+            const hasBoth = Boolean(appState.keys.groq && appState.keys.gemini);
+
+            if (activeKey) {
+                badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 cursor-pointer active:scale-95 transition';
+                const label = appState.provider === 'groq' ? '⚡ Groq' : '✨ Gemini';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${label}${hasBoth ? ' ⇄' : ''}`;
+            } else {
+                badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-pointer';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Configurar API';
+            }
+        }
+
+        // ==========================================
+        // MANIPULAÇÃO E COMPRESSÃO DE ARQUIVO
+        // ==========================================
+        function compressImageDataUrl(dataUrl, maxDim = 1280, quality = 0.82) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    let { width, height } = img;
+                    if (width <= maxDim && height <= maxDim && dataUrl.length < 350000) {
+                        resolve({ dataUrl, mimeType: 'image/jpeg' });
+                        return;
+                    }
+                    if (width > height && width > maxDim) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else if (height > maxDim) {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve({
+                        dataUrl: canvas.toDataURL('image/jpeg', quality),
+                        mimeType: 'image/jpeg'
+                    });
+                };
+                img.onerror = () => resolve({ dataUrl, mimeType: 'image/jpeg' });
+                img.src = dataUrl;
+            });
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 15 * 1024 * 1024) {
+                showToast('O arquivo é muito grande (máx. 15MB).', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                let dataUrl = e.target.result;
+                let mimeType = file.type;
+
+                if (file.type.startsWith('image/')) {
+                    const compressed = await compressImageDataUrl(dataUrl);
+                    dataUrl = compressed.dataUrl;
+                    mimeType = compressed.mimeType;
+                }
+
+                const base64Data = dataUrl.split(',')[1];
+                appState.currentFile = {
+                    base64: base64Data,
+                    mimeType: mimeType,
+                    name: file.name,
+                    size: (file.size / 1024).toFixed(1) + ' KB'
+                };
+
+                document.getElementById('upload-dropzone').classList.add('hidden');
+                document.getElementById('file-preview-box').classList.remove('hidden');
+                document.getElementById('btn-clear-input').classList.remove('hidden');
+                document.getElementById('file-name-display').textContent = file.name;
+                document.getElementById('file-size-display').textContent = appState.currentFile.size;
+
+                const imgPrev = document.getElementById('image-preview');
+                const pdfIcon = document.getElementById('pdf-preview-icon');
+
+                if (file.type.startsWith('image/')) {
+                    imgPrev.src = dataUrl;
+                    imgPrev.classList.remove('hidden');
+                    pdfIcon.classList.add('hidden');
+                } else {
+                    imgPrev.classList.add('hidden');
+                    pdfIcon.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSelectedFile() {
+            appState.currentFile = null;
+            const uploadEl = document.getElementById('file-upload');
+            if (uploadEl) uploadEl.value = '';
+            document.getElementById('upload-dropzone')?.classList.remove('hidden');
+            document.getElementById('file-preview-box')?.classList.add('hidden');
+        }
+
+        function resetStudyForm() {
+            removeSelectedFile();
+            const txt = document.getElementById('user-prompt-text');
+            if (txt) {
+                txt.value = '';
+                txt.style.height = '';
+            }
+            const attemptEl = document.getElementById('user-attempt-input');
+            if (attemptEl) attemptEl.value = '';
+            const defaultConf = document.querySelector('input[name="attempt-confidence"][value="Convicto"]');
+            if (defaultConf) defaultConf.checked = true;
+
+            document.getElementById('result-workspace')?.classList.add('hidden');
+            document.getElementById('btn-clear-input')?.classList.add('hidden');
+            appState.currentQuestionId = null;
+        }
+
+        // ==========================================
+        // ANÁLISE DA QUESTÃO PRINCIPAL (COM STREAMING AO VIVO)
+        // ==========================================
+        async function analyzeQuestion() {
+            const extraText = (document.getElementById('user-prompt-text')?.value || '').trim();
+            const userAttempt = (document.getElementById('user-attempt-input')?.value || '').trim();
+            const confidenceLevel = document.querySelector('input[name="attempt-confidence"]:checked')?.value || 'Convicto';
+
+            if (!appState.currentFile && !extraText) {
+                showToast('Envie uma foto/PDF ou cole o texto da questão.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-analyze');
+            const loading = document.getElementById('loading-state');
+            const workspace = document.getElementById('result-workspace');
+            const badgeEl = document.getElementById('detected-subject-badge');
+            const contentEl = document.getElementById('ai-response-content');
+
+            if (btn) btn.disabled = true;
+            loading?.classList.remove('hidden');
+            workspace?.classList.add('hidden');
+            if (badgeEl) badgeEl.textContent = 'Analisando...';
+            if (contentEl) contentEl.innerHTML = '';
+
+            const attemptInstruction = userAttempt
+                ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(O aluno respondeu: "${userAttempt}" marcando o nível de confiança: "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!**, compare a resposta dele com o gabarito oficial e faça uma análise diagnóstica específica considerando que ele estava "${confidenceLevel}" — ex: se errou estando Convicto, alerte sobre o ponto cego; se acertou no Chute, explique a regra para fixar).\n`
+                : '';
+
+            const systemPrompt = `Você é um tutor especialista em concursos públicos, focado em aprendizagem visual e altamente escaneável (sem paredões de texto).
+Analise a questão enviada (imagem, PDF ou texto) e responda ESTRITAMENTE nesta estrutura visual em Markdown:
+
+MATERIA: [Disciplina Principal em maiúsculas] - [Tópico Específico]
+RESUMO_ENUNCIADO: [Resumo fiel do enunciado em 1 ou 2 linhas]
+${attemptInstruction}
+### 🎯 Gabarito & Ideia Central
+- **Resposta Correta:** [Letra/Certo ou Errado] — [Explicação direta em 1 frase]
+- **Fluxo Lógico:** \`[Regra Geral]\` ➔ \`[Exceção / Condição]\` ➔ \`[Resultado na Questão]\`
+
+### 🔍 Raio-X das Alternativas
+(Liste cada alternativa ou item começando exatamente com ✅ para a correta ou ❌ para as incorretas, explicando de forma objetiva o porquê)
+- ✅ **Item Correto:** ...
+- ❌ **Item Incorreto:** ...
+
+### 📊 Quadro Esquematizado (Compare & Memorize)
+(Crie uma tabela Markdown curta comparando os conceitos-chave cobrados na questão para fixação visual)
+
+> ⚠️ **Pegadinha de Banca:** [Destaque o detalhe que mais derruba candidatos nesse tema]
+
+${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
+
+            let streamStarted = false;
+            let lastRenderTime = 0;
+
+            try {
+                const rawResponse = await callAIWithRetry(systemPrompt, appState.currentFile, (partialText) => {
+                    if (!streamStarted && partialText.trim().length > 15) {
+                        streamStarted = true;
+                        loading?.classList.add('hidden');
+                        workspace?.classList.remove('hidden');
+                    }
+                    const now = Date.now();
+                    if (streamStarted && now - lastRenderTime > 90) {
+                        lastRenderTime = now;
+                        const { subject, cleanMarkdown } = extractSubjectAndCleanText(partialText);
+                        if (badgeEl && subject !== 'Geral') badgeEl.textContent = subject;
+                        renderVisualMarkdown(cleanMarkdown, contentEl);
+                    }
+                });
+
+                const { subject, summary, cleanMarkdown } = extractSubjectAndCleanText(rawResponse);
+
+                appState.currentQuestionId = Date.now().toString();
+                appState.currentRawAnalysis = cleanMarkdown;
+                appState.currentDetectedSubject = subject;
+                appState.currentQuestionSummary = summary || extraText.slice(0, 140) || 'Questão enviada via arquivo';
+                appState.currentUserAttempt = userAttempt;
+                appState.currentConfidenceLevel = userAttempt ? confidenceLevel : '';
+                appState.deepDiveAssets = [];
+
+                if (badgeEl) badgeEl.textContent = subject;
+                const subjEdit = document.getElementById('subject-edit-input');
+                if (subjEdit) subjEdit.value = subject;
+                renderVisualMarkdown(cleanMarkdown, contentEl);
+
+                const deepDiveEl = document.getElementById('deep-dive-container');
+                if (deepDiveEl) deepDiveEl.innerHTML = '';
+                const noteTextEl = document.getElementById('personal-note-text');
+                if (noteTextEl) noteTextEl.value = '';
+                setNoteColor('white');
+
+                loading?.classList.add('hidden');
+                workspace?.classList.remove('hidden');
+                workspace?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                await autoSaveToNotebook();
+
+            } catch (error) {
+                loading?.classList.add('hidden');
+                showToast(error.message || 'Erro ao analisar a questão.', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function renderVisualMarkdown(markdownText, targetEl) {
+            if (!targetEl) return;
+            targetEl.innerHTML = marked.parse(markdownText);
+            targetEl.querySelectorAll('li').forEach(li => {
+                const txt = li.textContent.trim();
+                if (txt.startsWith('✅')) {
+                    li.classList.add('opt-correct');
+                } else if (txt.startsWith('❌')) {
+                    li.classList.add('opt-wrong');
+                }
+            });
+        }
+
+        function extractSubjectAndCleanText(text) {
+            let subject = 'Geral';
+            let summary = '';
+            let cleanLines = [];
+
+            const lines = text.split('\n');
+            for (const line of lines) {
+                if (line.trim().startsWith('MATERIA:')) {
+                    subject = line.replace('MATERIA:', '').trim();
+                } else if (line.trim().startsWith('RESUMO_ENUNCIADO:')) {
+                    summary = line.replace('RESUMO_ENUNCIADO:', '').trim();
+                } else {
+                    cleanLines.push(line);
+                }
+            }
+            return {
+                subject: subject || 'Geral',
+                summary: summary,
+                cleanMarkdown: cleanLines.join('\n').trim()
+            };
+        }
+
+        // ==========================================
+        // MOTOR DE IA MULTI-PROVEDOR (STREAMING + TIMEOUT RÁPIDO)
+        // ==========================================
+        async function fetchWithTimeout(url, options, timeoutMs = 18000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                return await fetch(url, { ...options, signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function readOpenAIStream(response, onChunk) {
+            if (!response.body || !onChunk) {
+                const data = await response.json();
+                return data?.choices?.[0]?.message?.content || '';
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let fullText = '';
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith('data:')) continue;
+                    const dataStr = trimmed.slice(5).trim();
+                    if (dataStr === '[DONE]') continue;
+                    try {
+                        const parsed = JSON.parse(dataStr);
+                        const delta = parsed?.choices?.[0]?.delta?.content;
+                        if (delta) {
+                            fullText += delta;
+                            onChunk(fullText);
+                        }
+                    } catch (e) {}
+                }
+            }
+            return fullText;
+        }
+
+        async function readGeminiStream(response, onChunk) {
+            if (!response.body || !onChunk) {
+                const data = await response.json();
+                return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let fullText = '';
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith('data:')) continue;
+                    const dataStr = trimmed.slice(5).trim();
+                    if (!dataStr || dataStr === '[DONE]') continue;
+                    try {
+                        const parsed = JSON.parse(dataStr);
+                        const textPart = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (textPart) {
+                            fullText += textPart;
+                            onChunk(fullText);
+                        }
+                    } catch (e) {}
+                }
+            }
+            return fullText;
+        }
+
+        async function callSingleProvider(provider, promptText, fileObj = null, onChunk = null) {
+            const apiKey = appState.keys[provider];
+            if (!apiKey) {
+                throw new Error(`Chave de API do ${provider === 'groq' ? 'Groq' : 'Gemini'} não configurada.`);
+            }
+
+            if (provider === 'groq') {
+                if (fileObj && fileObj.mimeType === 'application/pdf') {
+                    throw new Error('GROQ_UNSUPPORTED_PDF');
+                }
+
+                const preferred = appState.models.groq || 'openai/gpt-oss-20b';
+                const modelsToTry = fileObj
+                    ? ['meta-llama/llama-4-scout-17b-16e-instruct']
+                    : [preferred, preferred === 'openai/gpt-oss-20b' ? 'llama-3.3-70b-versatile' : 'openai/gpt-oss-20b'];
+
+                let lastErr = '';
+                for (const modelName of modelsToTry) {
+                    const userContent = fileObj
+                        ? [
+                            { type: 'text', text: promptText },
+                            { type: 'image_url', image_url: { url: `data:${fileObj.mimeType};base64,${fileObj.base64}` } }
+                          ]
+                        : promptText;
+
+                    const payload = {
+                        model: modelName,
+                        messages: [{ role: 'user', content: userContent }],
+                        max_tokens: 2048,
+                        stream: Boolean(onChunk)
+                    };
+                    if (!modelName.includes('gpt-oss')) {
+                        payload.temperature = 0.25;
+                    }
+
+                    try {
+                        const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${apiKey}`
+                            },
+                            body: JSON.stringify(payload)
+                        }, 18000);
+
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            lastErr = errData?.error?.message || `HTTP ${response.status}`;
+                            continue;
+                        }
+
+                        const text = await readOpenAIStream(response, onChunk);
+                        if (text) return text;
+                    } catch (e) {
+                        lastErr = e.name === 'AbortError' ? 'Tempo limite excedido (18s).' : (e.message || 'Erro de conexão.');
+                        continue;
+                    }
+                }
+                throw new Error(lastErr || 'Não foi possível obter resposta da Groq.');
+            }
+
+            // Google Gemini
+            const preferredGemini = appState.models.gemini || 'gemini-2.5-flash';
+            const geminiModels = [
+                preferredGemini,
+                preferredGemini === 'gemini-2.5-flash' ? 'gemini-3.5-flash-lite' : 'gemini-2.5-flash'
+            ];
+
+            let lastGeminiErr = '';
+            for (const modelName of geminiModels) {
+                const endpoint = onChunk
+                    ? `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`
+                    : `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+                const parts = [{ text: promptText }];
+                if (fileObj) {
+                    parts.push({
+                        inlineData: {
+                            mimeType: fileObj.mimeType,
+                            data: fileObj.base64
+                        }
+                    });
+                }
+
+                try {
+                    const response = await fetchWithTimeout(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts }],
+                            generationConfig: { temperature: 0.25, maxOutputTokens: 2048 }
+                        })
+                    }, 22000);
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        lastGeminiErr = errData?.error?.message || `HTTP ${response.status}`;
+                        continue;
+                    }
+
+                    const text = await readGeminiStream(response, onChunk);
+                    if (text) return text;
+                } catch (e) {
+                    lastGeminiErr = e.name === 'AbortError' ? 'Tempo limite excedido (22s).' : (e.message || 'Erro de conexão.');
+                    continue;
+                }
+            }
+            throw new Error(lastGeminiErr || 'Não foi possível obter resposta do Gemini.');
+        }
+
+        async function callAIWithRetry(promptText, fileObj = null, onChunk = null) {
+            if (!appState.keys.groq && !appState.keys.gemini) {
+                switchTab('settings');
+                throw new Error('Configure sua chave de API na aba Ajustes primeiro.');
+            }
+
+            const primary = appState.keys[appState.provider]
+                ? appState.provider
+                : (appState.keys.groq ? 'groq' : 'gemini');
+            const secondary = primary === 'groq' ? 'gemini' : 'groq';
+
+            if (primary === 'groq' && fileObj && fileObj.mimeType === 'application/pdf') {
+                if (appState.keys.gemini) {
+                    showToast('Usando chave Gemini salva para ler o PDF...', 'info');
+                    return await callSingleProvider('gemini', promptText, fileObj, onChunk);
+                } else {
+                    throw new Error('Para ler PDFs, adicione sua chave gratuita do Google Gemini nos Ajustes.');
+                }
+            }
+
+            try {
+                return await callSingleProvider(primary, promptText, fileObj, onChunk);
+            } catch (primaryErr) {
+                if (appState.autoFallback && appState.keys[secondary]) {
+                    const secName = secondary === 'groq' ? 'Groq' : 'Gemini';
+                    const priName = primary === 'groq' ? 'Groq' : 'Gemini';
+                    showToast(`${priName} demorou/atingiu limite. Alternando para ${secName}...`, 'warning');
+                    return await callSingleProvider(secondary, promptText, fileObj, onChunk);
+                }
+                throw primaryErr;
+            }
+        }
+
+        // ==========================================
+        // ESTAÇÃO DE APROFUNDAMENTO ATIVO
+        // ==========================================
+        async function generateStudyAsset(type) {
+            if (!appState.currentRawAnalysis) return;
+
+            const container = document.getElementById('deep-dive-container');
+            const loaderId = 'asset-loader-' + Date.now();
+            
+            const titles = {
+                mindmap: '🗺️ Mapa Mental Estruturado',
+                flashcards: '🃏 Flashcards de Memorização Ativa',
+                simulado: '📝 Questões Inéditas para Treino'
+            };
+
+            const loaderHtml = `
+                <div id="${loaderId}" class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/40 flex items-center gap-3">
+                    <div class="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs font-medium text-indigo-900">Gerando ${titles[type]}...</span>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', loaderHtml);
+
+            let prompt = '';
+            if (type === 'mindmap') {
+                prompt = `Com base na questão e análise abaixo, crie um MAPA MENTAL HIERÁRQUICO super claro em formato de árvore usando indentação e emojis para memorização rápida.\n\nContexto:\n${appState.currentRawAnalysis}`;
+            } else if (type === 'flashcards') {
+                prompt = `Com base na questão e análise abaixo, crie 4 FLASHCARDS de revisão ativa.
+Responda APENAS um JSON válido (sem blocos de código markdown, sem texto antes ou depois) neste formato exato:
+[{"frente": "Pergunta curta e direta?", "verso": "Resposta objetiva e macete."}]
+
+Contexto:\n${appState.currentRawAnalysis}`;
+            } else if (type === 'simulado') {
+                prompt = `Com base no mesmo tema e estilo de banca da análise abaixo, crie 2 QUESTÕES INÉDITAS de fixação (estilo Certo/Errado ou Múltipla Escolha) com o gabarito comentado oculto logo abaixo de cada uma.\n\nContexto:\n${appState.currentRawAnalysis}`;
+            }
+
+            try {
+                const result = await callAIWithRetry(prompt);
+                document.getElementById(loaderId)?.remove();
+
+                if (type === 'flashcards') {
+                    renderFlashcardsBlock(result, container);
+                } else {
+                    const cardHtml = `
+                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 space-y-2 animate-fade-in">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <span class="text-xs font-bold text-indigo-950">${titles[type]}</span>
+                            </div>
+                            <div class="prose-study text-xs">${marked.parse(result)}</div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                }
+
+                appState.deepDiveAssets.push({ type, title: titles[type], content: result });
+                await autoSaveToNotebook();
+
+            } catch (error) {
+                document.getElementById(loaderId)?.remove();
+                showToast('Erro ao gerar material: ' + error.message, 'error');
+            }
+        }
+
+        function renderFlashcardsBlock(rawText, container) {
+            let cards = [];
+            try {
+                const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                cards = JSON.parse(cleaned);
+            } catch (e) {
+                const fallbackHtml = `
+                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                        <span class="text-xs font-bold text-emerald-900">🃏 Flashcards de Revisão</span>
+                        <div class="prose-study text-xs">${marked.parse(rawText)}</div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', fallbackHtml);
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-2.5 animate-fade-in';
+            wrapper.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-950">🃏 Flashcards (Toque para virar)</span>
+                    <span class="text-[10px] font-medium text-emerald-700">${cards.length} cards</span>
+                </div>
+            `;
+
+            cards.forEach((c, idx) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'flashcard-item bg-white border border-emerald-200/80 rounded-xl p-3 shadow-2xs';
+                cardEl.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <p class="text-xs font-bold text-slate-800"><span class="text-emerald-600 mr-1">#${idx+1}</span> ${escapeHTML(c.frente)}</p>
+                        <i data-lucide="rotate-cw" class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5"></i>
+                    </div>
+                    <div class="card-answer hidden mt-2 pt-2 border-t border-slate-100 text-xs text-emerald-900 font-medium bg-emerald-50/50 p-2 rounded-lg">
+                        ${escapeHTML(c.verso)}
+                    </div>
+                `;
+                cardEl.onclick = () => {
+                    cardEl.querySelector('.card-answer').classList.toggle('hidden');
+                };
+                wrapper.appendChild(cardEl);
+            });
+
+            container.appendChild(wrapper);
+            lucide.createIcons();
+        }
+
+        async function askFollowup() {
+            const input = document.getElementById('followup-input');
+            const question = input.value.trim();
+            if (!question || !appState.currentRawAnalysis) return;
+
+            input.value = '';
+            const container = document.getElementById('deep-dive-container');
+            
+            const userBubble = `
+                <div class="bg-indigo-600 text-white text-xs p-3 rounded-xl rounded-br-none ml-8 shadow-2xs">
+                    <p class="font-medium">${escapeHTML(question)}</p>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', userBubble);
+
+            const loaderId = 'chat-loader-' + Date.now();
+            container.insertAdjacentHTML('beforeend', `<div id="${loaderId}" class="text-xs text-slate-400 italic pl-2">Tutor digitando...</div>`);
+
+            const prompt = `Você é um tutor particular respondendo a uma dúvida pontual do aluno sobre a questão abaixo. Seja claro, didático e direto ao ponto.\n\nAnálise da Questão:\n${appState.currentRawAnalysis}\n\nDúvida do Aluno: ${question}`;
+
+            try {
+                const reply = await callAIWithRetry(prompt);
+                document.getElementById(loaderId)?.remove();
+
+                const aiBubble = `
+                    <div class="bg-slate-100 border border-slate-200 text-slate-800 text-xs p-3.5 rounded-xl rounded-bl-none mr-4 prose-study animate-fade-in">
+                        ${marked.parse(reply)}
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', aiBubble);
+                
+                appState.deepDiveAssets.push({ type: 'chat', title: `Dúvida: ${question}`, content: reply });
+                await autoSaveToNotebook();
+
+            } catch (error) {
+                document.getElementById(loaderId)?.remove();
+                showToast(error.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // ANOTAÇÕES COLORIDAS E SALVAMENTO NO CADERNO
+        // ==========================================
+        const colorStyles = {
+            white: 'border-slate-200 bg-white',
+            amber: 'border-amber-400 bg-amber-50/70',
+            rose: 'border-rose-400 bg-rose-50/70',
+            emerald: 'border-emerald-400 bg-emerald-50/70',
+            sky: 'border-sky-400 bg-sky-50/70'
+        };
+
+        function setNoteColor(color) {
+            appState.currentNoteColor = color;
+            const card = document.getElementById('personal-note-card');
+            card.className = `rounded-2xl shadow-sm border-2 p-4 space-y-3 transition-colors duration-200 ${colorStyles[color] || colorStyles.white}`;
+        }
+
+        async function autoSaveToNotebook() {
+            if (!appState.currentQuestionId) return;
+            const noteText = document.getElementById('personal-note-text')?.value.trim() || '';
+            const subjectVal = document.getElementById('subject-edit-input')?.value.trim() || appState.currentDetectedSubject;
+
+            const existingIndex = appState.notebook.findIndex(item => item.id === appState.currentQuestionId);
+            const record = {
+                id: appState.currentQuestionId,
+                date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                subject: subjectVal,
+                summary: appState.currentQuestionSummary,
+                userAttempt: appState.currentUserAttempt || '',
+                confidenceLevel: appState.currentConfidenceLevel || '',
+                analysis: appState.currentRawAnalysis,
+                note: noteText,
+                color: appState.currentNoteColor,
+                assets: appState.deepDiveAssets
+            };
+
+            if (existingIndex >= 0) {
+                appState.notebook[existingIndex] = record;
+            } else {
+                appState.notebook.unshift(record);
+            }
+
+            localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+            updateNotebookStats();
+            await pushItemToCloud(record);
+        }
+
+        async function saveCurrentQuestionToNotebook() {
+            await autoSaveToNotebook();
+            showToast('Anotação e questão salvas no Caderno e Nuvem!', 'success');
+        }
+
+        function updateNotebookStats() {
+            const total = appState.notebook.length;
+            const subjects = new Set(appState.notebook.map(i => (i.subject || 'Geral').split('-')[0].trim())).size;
+            const urgent = appState.notebook.filter(i => i.color === 'rose').length;
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-subjects').textContent = subjects;
+            document.getElementById('stat-urgent').textContent = urgent;
+
+            const navBadge = document.getElementById('nav-badge-count');
+            if (total > 0) {
+                navBadge.textContent = total;
+                navBadge.classList.remove('hidden');
+            } else {
+                navBadge.classList.add('hidden');
+            }
+        }
+
+        // ==========================================
+        // RENDERIZAÇÃO DO MEU CADERNO (PASTAS POR MATÉRIA)
+        // ==========================================
+        function filterNotebookColor(color) {
+            appState.colorFilter = color;
+            document.querySelectorAll('.filter-chip').forEach(btn => {
+                if (btn.dataset.colorFilter === color) {
+                    btn.classList.add('ring-2', 'ring-indigo-500', 'ring-offset-1');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-1');
+                }
+            });
+            renderNotebook();
+        }
+
+        function toggleFolder(subjectKey) {
+            appState.openFolders[subjectKey] = !appState.openFolders[subjectKey];
+            localStorage.setItem('estudo_open_folders', JSON.stringify(appState.openFolders));
+            renderNotebook();
+        }
+
+        function toggleAllFolders() {
+            const groupedSubjects = new Set(appState.notebook.map(i => (i.subject || 'Geral').split('-')[0].trim().toUpperCase()));
+            const anyClosed = Array.from(groupedSubjects).some(s => !appState.openFolders[s]);
+            groupedSubjects.forEach(s => {
+                appState.openFolders[s] = anyClosed;
+            });
+            localStorage.setItem('estudo_open_folders', JSON.stringify(appState.openFolders));
+            const btn = document.getElementById('btn-toggle-folders');
+            if (btn) btn.textContent = anyClosed ? 'Recolher Tudo' : 'Expandir Tudo';
+            renderNotebook();
+        }
+
+        function renderNotebook() {
+            const listEl = document.getElementById('notebook-list');
+            const query = (document.getElementById('notebook-search')?.value || '').toLowerCase().trim();
+
+            const filtered = appState.notebook.filter(item => {
+                const matchColor = appState.colorFilter === 'all' || item.color === appState.colorFilter;
+                const matchText = !query || 
+                    (item.subject && item.subject.toLowerCase().includes(query)) ||
+                    (item.summary && item.summary.toLowerCase().includes(query)) ||
+                    (item.note && item.note.toLowerCase().includes(query)) ||
+                    (item.analysis && item.analysis.toLowerCase().includes(query));
+                return matchColor && matchText;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-2">
+                        <i data-lucide="folder-open" class="w-8 h-8 text-slate-300 mx-auto"></i>
+                        <p class="text-sm font-semibold text-slate-700">Nenhuma questão encontrada</p>
+                        <p class="text-xs text-slate-400">Suas questões corrigidas aparecerão agrupadas por matéria aqui.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            const groups = {};
+            filtered.forEach(item => {
+                const mainSubject = (item.subject || 'Geral').split('-')[0].trim().toUpperCase();
+                if (!groups[mainSubject]) groups[mainSubject] = [];
+                groups[mainSubject].push(item);
+            });
+
+            const sortedSubjects = Object.keys(groups).sort();
+
+            listEl.innerHTML = sortedSubjects.map(subj => {
+                const items = groups[subj];
+                const isOpen = query.length > 0 || appState.colorFilter !== 'all' || Boolean(appState.openFolders[subj]);
+                const urgentCount = items.filter(i => i.color === 'rose').length;
+                const safeSubjArg = subj.replace(/'/g, "\\'");
+
+                const cardsHtml = items.map(item => {
+                    const cardTheme = colorStyles[item.color] || colorStyles.white;
+                    const colorDot = {
+                        white: 'bg-slate-300',
+                        amber: 'bg-amber-500',
+                        rose: 'bg-rose-500',
+                        emerald: 'bg-emerald-500',
+                        sky: 'bg-sky-500'
+                    }[item.color || 'white'];
+
+                    const topicOnly = item.subject.includes('-') ? item.subject.split('-').slice(1).join('-').trim() : item.subject;
+
+                    return `
+                        <div class="rounded-xl border-2 ${cardTheme} p-3.5 space-y-2 shadow-2xs transition">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="w-2.5 h-2.5 rounded-full ${colorDot} shrink-0"></span>
+                                    <span class="text-xs font-bold text-indigo-950 truncate">${escapeHTML(topicOnly)}</span>
+                                </div>
+                                <span class="text-[10px] font-medium text-slate-400 shrink-0">${item.date}</span>
+                            </div>
+
+                            ${item.userAttempt ? `
+                                <div class="text-[11px] font-semibold text-indigo-900 bg-indigo-50/80 px-2.5 py-1 rounded-lg inline-block">
+                                    Sua resposta: ${escapeHTML(item.userAttempt)} (${escapeHTML(item.confidenceLevel || '')})
+                                </div>
+                            ` : ''}
+
+                            <p class="text-xs text-slate-700 font-medium line-clamp-2">${escapeHTML(item.summary)}</p>
+
+                            ${item.note ? `
+                                <div class="bg-white/90 border border-slate-200/80 rounded-lg p-2 text-xs text-slate-800">
+                                    <span class="font-bold text-[10px] uppercase text-slate-400 block mb-0.5">Minha Anotação:</span>
+                                    ${escapeHTML(item.note)}
+                                </div>
+                            ` : ''}
+
+                            <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                                <button onclick="openQuestionFromNotebook('${item.id}')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i> Abrir Revisão
+                                </button>
+                                <button onclick="deleteNotebookItem('${item.id}')" class="text-xs text-slate-400 hover:text-rose-600 p-1">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                        <button onclick="toggleFolder('${safeSubjArg}')" class="w-full px-4 py-3.5 flex items-center justify-between bg-slate-50/80 hover:bg-slate-100/80 transition text-left">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                                    <i data-lucide="${isOpen ? 'folder-open' : 'folder'}" class="w-4 h-4"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="text-xs font-extrabold text-slate-900 truncate">${escapeHTML(subj)}</h3>
+                                    <p class="text-[11px] text-slate-500 font-medium">${items.length} ${items.length === 1 ? 'questão salva' : 'questões salvas'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                ${urgentCount > 0 ? `<span class="text-[10px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">${urgentCount} revisar</span>` : ''}
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}"></i>
+                            </div>
+                        </button>
+                        ${isOpen ? `<div class="p-3 space-y-2.5 border-t border-slate-100 bg-white">${cardsHtml}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function openQuestionFromNotebook(id) {
+            const item = appState.notebook.find(i => i.id === id);
+            if (!item) return;
+
+            appState.currentQuestionId = item.id;
+            appState.currentRawAnalysis = item.analysis;
+            appState.currentDetectedSubject = item.subject;
+            appState.currentQuestionSummary = item.summary;
+            appState.currentUserAttempt = item.userAttempt || '';
+            appState.currentConfidenceLevel = item.confidenceLevel || '';
+            appState.deepDiveAssets = item.assets || [];
+
+            document.getElementById('detected-subject-badge').textContent = item.subject;
+            document.getElementById('subject-edit-input').value = item.subject;
+            renderVisualMarkdown(item.analysis, document.getElementById('ai-response-content'));
+            document.getElementById('personal-note-text').value = item.note || '';
+            setNoteColor(item.color || 'white');
+
+            const container = document.getElementById('deep-dive-container');
+            container.innerHTML = '';
+            (item.assets || []).forEach(asset => {
+                if (asset.type === 'flashcards') {
+                    renderFlashcardsBlock(asset.content, container);
+                } else {
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 space-y-1.5">
+                            <span class="text-xs font-bold text-indigo-950 block border-b border-slate-200 pb-1.5">${escapeHTML(asset.title)}</span>
+                            <div class="prose-study text-xs">${marked.parse(asset.content)}</div>
+                        </div>
+                    `);
+                }
+            });
+
+            switchTab('study');
+            document.getElementById('result-workspace').classList.remove('hidden');
+            document.getElementById('btn-clear-input').classList.remove('hidden');
+            document.getElementById('result-workspace').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteNotebookItem(id) {
+            if (!confirm('Deseja excluir esta questão do seu caderno?')) return;
+            appState.notebook = appState.notebook.filter(i => i.id !== id);
+            localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+            updateNotebookStats();
+            renderNotebook();
+            await deleteItemFromCloud(id);
+            showToast('Questão removida.', 'info');
+        }
+
+        // ==========================================
+        // BACKUP GERAL (.JSON E .MD)
+        // ==========================================
+        function exportBackupJSON() {
+            const dataStr = JSON.stringify(appState.notebook, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `estudo-ativo-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Backup JSON baixado!', 'success');
+        }
+
+        function importBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (!Array.isArray(imported)) throw new Error('Formato inválido');
+                    const existingIds = new Set(appState.notebook.map(i => i.id));
+                    let added = 0;
+                    for (const item of imported) {
+                        if (item.id && !existingIds.has(item.id)) {
+                            appState.notebook.push(item);
+                            await pushItemToCloud(item);
+                            added++;
+                        }
+                    }
+                    localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+                    updateNotebookStats();
+                    showToast(`${added} questões importadas e sincronizadas!`, 'success');
+                } catch (err) {
+                    showToast('Erro ao ler arquivo de backup.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportMarkdownNotes() {
+            if (appState.notebook.length === 0) {
+                showToast('Seu caderno ainda está vazio.', 'warning');
+                return;
+            }
+            let md = `# Meu Caderno de Estudos Ativos\nExportado em: ${new Date().toLocaleDateString('pt-BR')}\n\n---\n\n`;
+            appState.notebook.forEach((item, idx) => {
+                md += `## ${idx + 1}. [${item.subject}] (${item.date})\n`;
+                if (item.userAttempt) md += `**Minha Tentativa:** ${item.userAttempt} (${item.confidenceLevel || ''})\n\n`;
+                if (item.summary) md += `**Resumo:** ${item.summary}\n\n`;
+                if (item.note) md += `> **Minha Anotação:** ${item.note}\n\n`;
+                md += `${item.analysis}\n\n---\n\n`;
+            });
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `caderno-estudos-${new Date().toISOString().slice(0,10)}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Arquivo Markdown (.md) exportado!', 'success');
+        }
+    </script>
+</body>
+</html>
