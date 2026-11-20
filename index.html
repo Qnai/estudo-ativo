@@ -42,4 +42,2098 @@
         }
         .prose-study h3 { 
             font-size: 0.92rem; 
-            text-transform:
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #4338ca;
+            background: #eef2ff;
+            padding: 0.45rem 0.75rem;
+            border-radius: 0.65rem;
+            border-left: 4px solid #4f46e5;
+        }
+        .prose-study p {
+            margin-bottom: 0.25rem;
+            line-height: 1.55;
+            color: #334155;
+            font-size: 0.93rem;
+        }
+        .prose-study ul, .prose-study ol {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            margin-bottom: 0.25rem;
+            padding-left: 0;
+            list-style: none;
+        }
+        .prose-study li {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.65rem 0.85rem;
+            line-height: 1.5;
+            color: #334155;
+            font-size: 0.91rem;
+        }
+        .prose-study li.opt-correct {
+            background: #f0fdf4;
+            border-color: #86efac;
+            border-left: 4px solid #16a34a;
+            color: #14532d;
+        }
+        .prose-study li.opt-wrong {
+            background: #fef2f2;
+            border-color: #fecaca;
+            border-left: 4px solid #ef4444;
+            color: #7f1d1d;
+        }
+        .prose-study strong {
+            color: #0f172a;
+            font-weight: 700;
+        }
+        .prose-study blockquote {
+            border-left: 4px solid #f59e0b;
+            background: linear-gradient(to right, #fffbeb, #fef3c7);
+            padding: 0.75rem 0.9rem;
+            border-radius: 0.75rem;
+            margin: 0.25rem 0;
+            color: #78350f;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .prose-study table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 0.25rem 0;
+            font-size: 0.85rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        .prose-study th {
+            background-color: #1e293b;
+            color: #ffffff;
+            font-weight: 700;
+            text-align: left;
+            padding: 0.6rem 0.75rem;
+        }
+        .prose-study td {
+            padding: 0.6rem 0.75rem;
+            border-top: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            color: #334155;
+        }
+        .prose-study tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        .prose-study code {
+            background-color: #e0e7ff;
+            color: #3730a3;
+            padding: 0.15rem 0.4rem;
+            border-radius: 0.35rem;
+            font-size: 0.84em;
+            font-weight: 600;
+        }
+
+        .flashcard-item {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .flashcard-item:active {
+            transform: scale(0.99);
+        }
+
+        .bottom-nav {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.22s ease-out forwards;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- MODAL DE BLOQUEIO POR PIN (OPCIONAL) -->
+    <div id="pin-lock-overlay" class="hidden fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-sm flex items-center justify-center p-6">
+        <div class="bg-white rounded-3xl p-6 max-w-xs w-full text-center shadow-2xl space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+                <i data-lucide="lock" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h2 class="text-base font-extrabold text-slate-900">Caderno Protegido</h2>
+                <p class="text-xs text-slate-500 mt-1">Digite seu PIN de 4 dígitos para acessar suas chaves e questões.</p>
+            </div>
+            <input type="password" id="pin-unlock-input" maxlength="4" inputmode="numeric" placeholder="••••" oninput="checkPinUnlock()" class="w-full text-center text-2xl font-extrabold tracking-[0.5em] py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none">
+            <p id="pin-error-msg" class="hidden text-xs font-semibold text-rose-600">PIN incorreto. Tente novamente.</p>
+        </div>
+    </div>
+
+    <!-- HEADER SUPERIOR -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3">
+        <div class="max-w-3xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                    <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+                </div>
+                <div class="truncate">
+                    <h1 class="font-bold text-slate-900 text-base leading-tight truncate">Estudo Ativo</h1>
+                    <p class="text-[11px] text-slate-500 font-medium truncate">Nuvem + Estudo Reverso</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" id="cloud-status-badge" onclick="syncFromCloud(true)" title="Sincronizar com a Nuvem" class="text-[11px] font-bold px-2 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1 active:scale-95 transition">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> Local
+                </button>
+
+                <button type="button" id="api-status-badge" onclick="quickToggleProvider()" title="Toque para alternar entre Groq e Gemini" class="text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 active:scale-95 transition">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Configurar API
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="max-w-3xl mx-auto px-4 pt-4">
+
+        <!-- ========================================== -->
+        <!-- ABA 1: ESTUDAR / ANALISAR QUESTÃO          -->
+        <!-- ========================================== -->
+        <section id="tab-study" class="space-y-4 animate-fade-in">
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 space-y-3.5">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
+                        <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
+                        1. Inserir Questão ou Material
+                    </h2>
+                    <button type="button" onclick="resetStudyForm()" id="btn-clear-input" class="hidden text-xs text-slate-400 hover:text-rose-500 font-medium flex items-center gap-1">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i> Limpar
+                    </button>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="user-prompt-text" class="text-xs font-semibold text-slate-600">Cole o texto completo da questão ou sua dúvida</label>
+                        <span class="text-[10px] text-slate-400">Expande automaticamente</span>
+                    </div>
+                    <textarea id="user-prompt-text" rows="6" oninput="autoResizeTextarea(this)" placeholder="Cole aqui o enunciado e as alternativas (A, B, C, D, E ou Certo/Errado)..." class="w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm leading-relaxed focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition resize-y min-h-[155px]"></textarea>
+                </div>
+
+                <div class="pt-0.5">
+                    <label for="file-upload" id="upload-dropzone" class="flex items-center justify-between w-full px-3.5 py-2.5 border border-dashed border-slate-300 rounded-xl cursor-pointer bg-slate-50/70 hover:bg-indigo-50/40 hover:border-indigo-400 transition active:scale-[0.99]">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="camera" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-700">Anexar Foto da Questão ou PDF</p>
+                                <p class="text-[10px] text-slate-400">Câmera, print da galeria ou documento PDF</p>
+                            </div>
+                        </div>
+                        <span class="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">Selecionar</span>
+                        <input id="file-upload" type="file" accept="image/*,application/pdf" class="hidden" onchange="handleFileSelect(event)" />
+                    </label>
+
+                    <div id="file-preview-box" class="hidden mt-2 relative rounded-xl border border-slate-200 bg-slate-50 p-2.5 flex items-center gap-3">
+                        <img id="image-preview" class="hidden w-14 h-14 object-cover rounded-lg border border-slate-200" alt="Preview">
+                        <div id="pdf-preview-icon" class="hidden w-14 h-14 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="file-text" class="w-7 h-7"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p id="file-name-display" class="text-xs font-bold text-slate-800 truncate">arquivo.jpg</p>
+                            <p id="file-size-display" class="text-[11px] text-slate-500">Pronto para análise</p>
+                        </div>
+                        <button type="button" onclick="removeSelectedFile()" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Tentativa Ativa de Resposta & Nível de Confiança -->
+                <div class="bg-indigo-50/60 border border-indigo-200/80 rounded-xl p-3 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label for="user-attempt-input" class="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                            <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            2. Sua Tentativa de Resposta (Opcional)
+                        </label>
+                        <span class="text-[10px] font-medium text-indigo-600">Avalia acerto e confiança</span>
+                    </div>
+
+                    <input type="text" id="user-attempt-input" placeholder="Ex: Letra C, ou 'Certo — porque o prazo é decadencial de 5 anos...'" class="w-full rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none">
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="attempt-confidence" value="Convicto" checked class="peer sr-only">
+                            <div class="text-center py-2 px-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 transition shadow-sm">
+                                <div class="text-xs font-extrabold">🎯 Convicto</div>
+                                <div class="text-[9px] opacity-85">Tenho certeza</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="attempt-confidence" value="Impreciso" class="peer sr-only">
+                            <div class="text-center py-2 px-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 transition shadow-sm">
+                                <div class="text-xs font-extrabold">🤔 Impreciso</div>
+                                <div class="text-[9px] opacity-85">Em dúvida</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="attempt-confidence" value="Chute" class="peer sr-only">
+                            <div class="text-center py-2 px-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 transition shadow-sm">
+                                <div class="text-xs font-extrabold">🎲 Chute</div>
+                                <div class="text-[9px] opacity-85">Não sabia</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-analyze" onclick="analyzeQuestion()" class="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold py-3.5 px-4 rounded-xl shadow-sm flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span>Corrigir e Analisar com IA</span>
+                </button>
+            </div>
+
+            <div id="loading-state" class="hidden bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
+                <div class="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+                <div>
+                    <p class="text-sm font-semibold text-slate-800">Corrigindo sua resposta...</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Gerando diagnóstico de confiança e esquema visual.</p>
+                </div>
+            </div>
+
+            <!-- ÁREA DE RESULTADO E ESTUDO ATIVO -->
+            <div id="result-workspace" class="hidden space-y-4 animate-fade-in">
+                
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-300">Correção & Esquema</span>
+                        </div>
+                        <span id="detected-subject-badge" class="text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">
+                            Geral
+                        </span>
+                    </div>
+                    
+                    <div id="ai-response-content" class="p-4 prose-study text-sm"></div>
+                </div>
+
+                <!-- ESTAÇÃO DE APROFUNDAMENTO ATIVO -->
+                <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                            <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
+                            Aprofundar e Fixar Conteúdo
+                        </h3>
+                        <span class="text-[11px] text-slate-400">Sob demanda</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" onclick="generateStudyAsset('mindmap')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 transition active:scale-95">
+                            <i data-lucide="git-fork" class="w-4 h-4 mb-1 text-indigo-600"></i>
+                            <span class="text-[11px] font-semibold">Mapa Mental</span>
+                        </button>
+                        <button type="button" onclick="generateStudyAsset('flashcards')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 transition active:scale-95">
+                            <i data-lucide="copy" class="w-4 h-4 mb-1 text-emerald-600"></i>
+                            <span class="text-[11px] font-semibold">Flashcards</span>
+                        </button>
+                        <button type="button" onclick="generateStudyAsset('simulado')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 transition active:scale-95">
+                            <i data-lucide="help-circle" class="w-4 h-4 mb-1 text-amber-600"></i>
+                            <span class="text-[11px] font-semibold">+ Questões</span>
+                        </button>
+                    </div>
+
+                    <div class="pt-1">
+                        <div class="flex gap-2">
+                            <input type="text" id="followup-input" placeholder="Ficou com dúvida? Pergunte ao tutor..." class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" onkeypress="if(event.key==='Enter') askFollowup()">
+                            <button type="button" onclick="askFollowup()" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 transition">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="deep-dive-container" class="space-y-3 pt-1"></div>
+                </div>
+
+                <!-- BLOCO DE ANOTAÇÕES COLORIDAS DO ALUNO -->
+                <div id="personal-note-card" class="rounded-2xl shadow-sm border-2 border-slate-200 bg-white p-4 space-y-3 transition-colors duration-200">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                            <i data-lucide="pen-tool" class="w-4 h-4 text-slate-700"></i>
+                            Minha Anotação de Revisão
+                        </h3>
+                        
+                        <div class="flex items-center gap-1.5" title="Cor de destaque no caderno">
+                            <button type="button" onclick="setNoteColor('white')" class="w-6 h-6 rounded-full bg-white border-2 border-slate-300 shadow-xs" title="Padrão"></button>
+                            <button type="button" onclick="setNoteColor('amber')" class="w-6 h-6 rounded-full bg-amber-200 border-2 border-amber-400 shadow-xs" title="Atenção / Pegadinha"></button>
+                            <button type="button" onclick="setNoteColor('rose')" class="w-6 h-6 rounded-full bg-rose-200 border-2 border-rose-400 shadow-xs" title="Errei / Revisar Urgente"></button>
+                            <button type="button" onclick="setNoteColor('emerald')" class="w-6 h-6 rounded-full bg-emerald-200 border-2 border-emerald-400 shadow-xs" title="Dominado / Macete"></button>
+                            <button type="button" onclick="setNoteColor('sky')" class="w-6 h-6 rounded-full bg-sky-200 border-2 border-sky-400 shadow-xs" title="Teoria / Jurisprudência"></button>
+                        </div>
+                    </div>
+
+                    <textarea id="personal-note-text" rows="3" placeholder="Escreva aqui o que você aprendeu com suas próprias palavras, o macete para não cair mais na pegadinha ou o artigo da lei..." class="w-full rounded-xl border border-slate-300/80 bg-white/80 p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+                    
+                    <div class="flex items-center justify-between gap-2">
+                        <input type="text" id="subject-edit-input" placeholder="Matéria (ex: Direito Administrativo)" class="flex-1 rounded-xl border border-slate-300/80 bg-white/80 px-3 py-2 text-xs font-medium text-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <button type="button" onclick="saveCurrentQuestionToNotebook()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xs flex items-center gap-1.5 transition active:scale-95">
+                            <i data-lucide="bookmark-check" class="w-4 h-4"></i>
+                            <span>Salvar no Caderno</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ABA 2: MEU CADERNO (HISTÓRICO & REVISÃO)   -->
+        <!-- ========================================== -->
+        <section id="tab-notebook" class="hidden space-y-4 animate-fade-in">
+            
+            <div class="grid grid-cols-3 gap-2.5">
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
+                    <p id="stat-total" class="text-xl font-extrabold text-indigo-600">0</p>
+                    <p class="text-[11px] font-medium text-slate-500">Questões</p>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
+                    <p id="stat-subjects" class="text-xl font-extrabold text-slate-800">0</p>
+                    <p class="text-[11px] font-medium text-slate-500">Matérias</p>
+                </div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 text-center">
+                    <p id="stat-urgent" class="text-xl font-extrabold text-rose-600">0</p>
+                    <p class="text-[11px] font-medium text-slate-500">Revisar (Vermelho)</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-2xl border border-slate-200 space-y-2.5">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                    <input type="text" id="notebook-search" oninput="renderNotebook()" placeholder="Buscar por matéria, palavra-chave ou anotação..." class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                        <button type="button" onclick="filterNotebookColor('all')" data-color-filter="all" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-800 text-white shrink-0">Todas</button>
+                        <button type="button" onclick="filterNotebookColor('rose')" data-color-filter="rose" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-rose-100 text-rose-800 shrink-0">🔴 Urgente</button>
+                        <button type="button" onclick="filterNotebookColor('amber')" data-color-filter="amber" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-100 text-amber-800 shrink-0">🟡 Atenção</button>
+                        <button type="button" onclick="filterNotebookColor('emerald')" data-color-filter="emerald" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-100 text-emerald-800 shrink-0">🟢 Dominado</button>
+                        <button type="button" onclick="filterNotebookColor('sky')" data-color-filter="sky" class="filter-chip px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-sky-100 text-sky-800 shrink-0">🔵 Teoria</button>
+                    </div>
+                    <button type="button" onclick="toggleAllFolders()" id="btn-toggle-folders" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 shrink-0 px-2 py-1 rounded-lg bg-indigo-50">
+                        Expandir Tudo
+                    </button>
+                </div>
+            </div>
+
+            <div id="notebook-list" class="space-y-3"></div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- ABA 3: AJUSTES, NUVEM & CHAVES DE API      -->
+        <!-- ========================================== -->
+        <section id="tab-settings" class="hidden space-y-4 animate-fade-in">
+            
+            <!-- Card de Sincronização em Nuvem (Supabase 500 MB) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-indigo-200/80 p-4 space-y-3.5">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="cloud" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-sm">Sincronização em Nuvem (Supabase — 500 MB)</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Sincroniza suas questões automaticamente entre iPhone, iPad e PC sem ocupar espaço no aparelho.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Project URL</label>
+                        <input type="text" id="supabase-url-input" placeholder="https://xxxxxxxxxxxx.supabase.co" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Publishable Key</label>
+                        <input type="password" id="supabase-key-input" placeholder="sb_publishable_..." class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div id="cloud-sync-feedback" class="hidden text-xs font-semibold text-emerald-700"></div>
+                    <button type="button" onclick="saveAndConnectCloud()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm flex items-center justify-center gap-1.5 transition">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        <span>Conectar e Sincronizar Nuvem</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ciclo de Arquivamento por Edital / Matéria (Backup Google Drive) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="folder-archive" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-sm">Ciclo de Arquivamento por Matéria (Google Drive)</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Exporte uma disciplina concluída para guardar no seu Google Drive e libere espaço no caderno ativo.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <select id="archive-subject-select" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold bg-white text-slate-800 outline-none">
+                        <option value="">Selecione uma matéria para arquivar...</option>
+                    </select>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="archiveSubjectToDrive()" class="py-2.5 px-3 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 text-xs font-bold hover:bg-indigo-100 flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Baixar p/ Drive (.md + .json)
+                        </button>
+                        <button type="button" onclick="purgeArchivedSubject()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Limpar Matéria da Nuvem
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Chaves de API Duplas -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="key-round" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-sm">Chaves de IA (Gemini & Groq)</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Suas chaves ficam salvas apenas no navegador deste dispositivo (nunca vão para o GitHub).</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Provedor Principal em Uso</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" id="btn-provider-groq" onclick="selectProvider('groq')" class="py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <span>⚡ Groq Cloud</span>
+                                <span id="badge-saved-groq" class="hidden text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">Salva</span>
+                            </button>
+                            <button type="button" id="btn-provider-gemini" onclick="selectProvider('gemini')" class="py-2.5 px-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs flex items-center justify-center gap-1.5 transition">
+                                <span>✨ Google Gemini</span>
+                                <span id="badge-saved-gemini" class="hidden text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">Salva</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-slate-800">⚡ Chave Groq Cloud (<code class="text-[11px]">gsk_...</code>)</label>
+                            <a href="https://console.groq.com/keys" target="_blank" class="text-[11px] font-semibold text-indigo-600 hover:underline">Gerar chave ↗</a>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="api-key-groq" placeholder="gsk_..." class="w-full rounded-xl border border-slate-300 bg-white pl-3 pr-10 py-2 text-xs font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button type="button" onclick="toggleInputVisibility('api-key-groq')" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Modelo Groq</label>
+                            <select id="model-select-groq" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none">
+                                <option value="openai/gpt-oss-20b" selected>GPT-OSS 20B (Padrão Groq)</option>
+                                <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
+                                <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B (Texto + Fotos)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-slate-800">✨ Chave Google Gemini (<code class="text-[11px]">AIzaSy...</code>)</label>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-[11px] font-semibold text-indigo-600 hover:underline">Gerar chave ↗</a>
+                        </div>
+                        <div class="relative">
+                            <input type="password" id="api-key-gemini" placeholder="AIzaSy..." class="w-full rounded-xl border border-slate-300 bg-white pl-3 pr-10 py-2 text-xs font-mono focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <button type="button" onclick="toggleInputVisibility('api-key-gemini')" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Modelo Gemini (Suporta Texto, Fotos e PDFs)</label>
+                            <select id="model-select-gemini" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none">
+                                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Padrão)</option>
+                                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Mais leve)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <label class="flex items-center justify-between p-3 rounded-xl border border-indigo-100 bg-indigo-50/50 cursor-pointer">
+                        <div>
+                            <p class="text-xs font-bold text-indigo-950">Alternância Automática (Fallback)</p>
+                            <p class="text-[11px] text-indigo-700/80">Se a IA principal atingir o limite, usa automaticamente a outra chave salva.</p>
+                        </div>
+                        <input type="checkbox" id="auto-fallback-check" checked class="w-4 h-4 accent-indigo-600 rounded">
+                    </label>
+
+                    <div id="provider-save-feedback" class="hidden text-xs font-semibold text-emerald-700 pt-0.5"></div>
+                    <button type="button" onclick="saveApiKey()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-xs shadow-sm transition">
+                        Salvar Chaves e Preferências
+                    </button>
+                </div>
+            </div>
+
+            <!-- Segurança Local (PIN Opcional) & Backup Geral -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-sm">Segurança PIN & Backup Completo</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Defina um PIN opcional de 4 dígitos para bloquear o acesso neste aparelho.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="password" id="pin-setup-input" maxlength="4" inputmode="numeric" placeholder="PIN (4 dígitos)" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-xs font-mono outline-none">
+                    <button type="button" onclick="saveSecurityPin()" class="px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold">Salvar PIN</button>
+                    <button type="button" onclick="removeSecurityPin()" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs font-semibold">Remover</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button type="button" onclick="exportBackupJSON()" class="py-2.5 px-3 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-1.5">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Exportar Tudo (.json)
+                    </button>
+                    <label class="py-2.5 px-3 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar (.json)
+                        <input type="file" accept=".json" class="hidden" onchange="importBackupJSON(event)">
+                    </label>
+                </div>
+                
+                <button type="button" onclick="exportMarkdownNotes()" class="w-full py-2.5 px-3 rounded-xl border border-indigo-200 bg-indigo-50/50 text-indigo-700 text-xs font-semibold hover:bg-indigo-100/70 flex items-center justify-center gap-1.5">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Exportar Caderno Completo para Leitura (.md)
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- NAVEGAÇÃO INFERIOR FIXA (MOBILE-FIRST) -->
+    <nav class="bottom-nav fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200">
+        <div class="max-w-3xl mx-auto grid grid-cols-3 h-16">
+            <button type="button" onclick="switchTab('study')" id="nav-study" class="nav-btn flex flex-col items-center justify-center gap-1 text-indigo-600 font-semibold cursor-pointer">
+                <i data-lucide="sparkles" class="w-5 h-5 pointer-events-none"></i>
+                <span class="text-[11px] pointer-events-none">Estudar</span>
+            </button>
+            <button type="button" onclick="switchTab('notebook')" id="nav-notebook" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-600 font-medium cursor-pointer">
+                <div class="relative pointer-events-none">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    <span id="nav-badge-count" class="hidden absolute -top-1.5 -right-2.5 bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full">0</span>
+                </div>
+                <span class="text-[11px] pointer-events-none">Meu Caderno</span>
+            </button>
+            <button type="button" onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-slate-600 font-medium cursor-pointer">
+                <i data-lucide="settings" class="w-5 h-5 pointer-events-none"></i>
+                <span class="text-[11px] pointer-events-none">Ajustes</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- TOAST DE NOTIFICAÇÃO -->
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 transition-all max-w-[92vw] text-center">
+        <span id="toast-msg">Mensagem</span>
+    </div>
+
+    <script>
+        function safeJsonParse(str, fallback) {
+            try {
+                const parsed = JSON.parse(str);
+                return parsed !== null && parsed !== undefined ? parsed : fallback;
+            } catch (e) {
+                return fallback;
+            }
+        }
+
+        const oldProvider = localStorage.getItem('estudo_ai_provider') || 'groq';
+        const oldKey = localStorage.getItem('estudo_gemini_api_key') || '';
+        const oldModel = localStorage.getItem('estudo_gemini_model') || '';
+
+        let savedGroqKey = localStorage.getItem('estudo_key_groq') || (oldProvider === 'groq' && oldKey ? oldKey : '');
+        let savedGeminiKey = localStorage.getItem('estudo_key_gemini') || (oldProvider === 'gemini' && oldKey ? oldKey : '');
+        let savedGroqModel = localStorage.getItem('estudo_model_groq') || (oldProvider === 'groq' && oldModel ? oldModel : 'openai/gpt-oss-20b');
+        let savedGeminiModel = localStorage.getItem('estudo_model_gemini') || (oldProvider === 'gemini' && oldModel ? oldModel : 'gemini-2.5-flash');
+        if (savedGeminiModel === 'gemini-2.5-flash-lite') savedGeminiModel = 'gemini-3.5-flash-lite';
+
+        let appState = {
+            provider: oldProvider,
+            keys: {
+                groq: savedGroqKey,
+                gemini: savedGeminiKey
+            },
+            models: {
+                groq: savedGroqModel,
+                gemini: savedGeminiModel
+            },
+            autoFallback: localStorage.getItem('estudo_auto_fallback') !== 'false',
+            supabaseUrl: localStorage.getItem('estudo_supabase_url') || '',
+            supabaseKey: localStorage.getItem('estudo_supabase_key') || '',
+            cloudConnected: false,
+            currentFile: null,
+            currentQuestionId: null,
+            currentRawAnalysis: '',
+            currentDetectedSubject: 'Geral',
+            currentQuestionSummary: '',
+            currentUserAttempt: '',
+            currentConfidenceLevel: '',
+            currentNoteColor: 'white',
+            deepDiveAssets: [],
+            notebook: safeJsonParse(localStorage.getItem('estudo_notebook_v1'), []),
+            colorFilter: 'all',
+            openFolders: safeJsonParse(localStorage.getItem('estudo_open_folders'), {})
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+            checkInitialPinLock();
+
+            const elGroqKey = document.getElementById('api-key-groq');
+            const elGeminiKey = document.getElementById('api-key-gemini');
+            const elGroqModel = document.getElementById('model-select-groq');
+            const elGeminiModel = document.getElementById('model-select-gemini');
+            const elFallback = document.getElementById('auto-fallback-check');
+            const elSupaUrl = document.getElementById('supabase-url-input');
+            const elSupaKey = document.getElementById('supabase-key-input');
+
+            if (elGroqKey) elGroqKey.value = appState.keys.groq;
+            if (elGeminiKey) elGeminiKey.value = appState.keys.gemini;
+            if (elGroqModel) elGroqModel.value = appState.models.groq;
+            if (elGeminiModel) elGeminiModel.value = appState.models.gemini;
+            if (elFallback) elFallback.checked = appState.autoFallback;
+            if (elSupaUrl) elSupaUrl.value = appState.supabaseUrl;
+            if (elSupaKey) elSupaKey.value = appState.supabaseKey;
+
+            selectProvider(appState.provider, false);
+            updateApiStatusBadge();
+            updateNotebookStats();
+            populateArchiveSelect();
+
+            if (appState.supabaseUrl && appState.supabaseKey) {
+                syncFromCloud(false);
+            }
+        });
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            if (!toast || !toastMsg) return;
+            toastMsg.textContent = msg;
+            toast.classList.remove('hidden', 'bg-slate-900', 'bg-emerald-700', 'bg-rose-700', 'bg-amber-700');
+            if (type === 'success') toast.classList.add('bg-emerald-700');
+            else if (type === 'error') toast.classList.add('bg-rose-700');
+            else if (type === 'warning') toast.classList.add('bg-amber-700');
+            else toast.classList.add('bg-slate-900');
+
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        function autoResizeTextarea(el) {
+            if (!el) return;
+            el.style.height = 'auto';
+            el.style.height = Math.max(155, el.scrollHeight) + 'px';
+            if (el.value.trim()) {
+                document.getElementById('btn-clear-input')?.classList.remove('hidden');
+            }
+        }
+
+        function escapeHTML(str) {
+            return String(str || '').replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
+        }
+
+        // ==========================================
+        // NAVEGAÇÃO ENTRE ABAS
+        // ==========================================
+        function switchTab(tabName) {
+            ['study', 'notebook', 'settings'].forEach(t => {
+                const sec = document.getElementById(`tab-${t}`);
+                if (sec) sec.classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (navBtn) {
+                    navBtn.classList.remove('text-indigo-600', 'font-semibold');
+                    navBtn.classList.add('text-slate-400', 'font-medium');
+                }
+            });
+
+            const targetSec = document.getElementById(`tab-${tabName}`);
+            if (targetSec) targetSec.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-slate-400', 'font-medium');
+                activeNav.classList.add('text-indigo-600', 'font-semibold');
+            }
+
+            try {
+                if (tabName === 'notebook') {
+                    renderNotebook();
+                } else if (tabName === 'settings') {
+                    populateArchiveSelect();
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // SEGURANÇA PIN LOCAL
+        // ==========================================
+        function checkInitialPinLock() {
+            const savedPin = localStorage.getItem('estudo_security_pin');
+            if (savedPin && savedPin.length === 4) {
+                document.getElementById('pin-lock-overlay')?.classList.remove('hidden');
+                setTimeout(() => document.getElementById('pin-unlock-input')?.focus(), 100);
+            }
+        }
+
+        function checkPinUnlock() {
+            const input = document.getElementById('pin-unlock-input');
+            const savedPin = localStorage.getItem('estudo_security_pin');
+            if (!input || !savedPin) return;
+            if (input.value.length === 4) {
+                if (input.value === savedPin) {
+                    document.getElementById('pin-lock-overlay')?.classList.add('hidden');
+                    document.getElementById('pin-error-msg')?.classList.add('hidden');
+                    input.value = '';
+                } else {
+                    document.getElementById('pin-error-msg')?.classList.remove('hidden');
+                    input.value = '';
+                }
+            }
+        }
+
+        function saveSecurityPin() {
+            const val = (document.getElementById('pin-setup-input')?.value || '').trim();
+            if (!/^\d{4}$/.test(val)) {
+                showToast('Digite exatamente 4 números para o PIN.', 'warning');
+                return;
+            }
+            localStorage.setItem('estudo_security_pin', val);
+            document.getElementById('pin-setup-input').value = '';
+            showToast('PIN de 4 dígitos ativado neste aparelho!', 'success');
+        }
+
+        function removeSecurityPin() {
+            localStorage.removeItem('estudo_security_pin');
+            showToast('Bloqueio por PIN removido.', 'info');
+        }
+
+        // ==========================================
+        // SINCRONIZAÇÃO EM NUVEM (SUPABASE - 500 MB)
+        // ==========================================
+        function updateCloudStatusBadge(status) {
+            const badge = document.getElementById('cloud-status-badge');
+            if (!badge) return;
+            if (status === 'connected') {
+                badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 active:scale-95 transition';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Nuvem OK';
+            } else if (status === 'syncing') {
+                badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span> Sinc...';
+            } else if (status === 'error') {
+                badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1 active:scale-95 transition';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Erro Nuvem';
+            } else {
+                badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1 active:scale-95 transition';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Local';
+            }
+        }
+
+        function getSupabaseHeaders() {
+            return {
+                'apikey': appState.supabaseKey,
+                'Authorization': `Bearer ${appState.supabaseKey}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function saveAndConnectCloud() {
+            const url = (document.getElementById('supabase-url-input')?.value || '').trim().replace(/\/$/, '');
+            const key = (document.getElementById('supabase-key-input')?.value || '').trim();
+            const fb = document.getElementById('cloud-sync-feedback');
+
+            if (!url || !key) {
+                showToast('Preencha a Project URL e a Publishable Key.', 'warning');
+                return;
+            }
+
+            appState.supabaseUrl = url;
+            appState.supabaseKey = key;
+            localStorage.setItem('estudo_supabase_url', url);
+            localStorage.setItem('estudo_supabase_key', key);
+
+            const ok = await syncFromCloud(true);
+            if (ok && fb) {
+                fb.textContent = `✓ Conectado ao Supabase! ${appState.notebook.length} questão(ões) sincronizada(s).`;
+                fb.classList.remove('hidden');
+            }
+        }
+
+        async function syncFromCloud(notify = false) {
+            if (!appState.supabaseUrl || !appState.supabaseKey) {
+                if (notify) switchTab('settings');
+                return false;
+            }
+            updateCloudStatusBadge('syncing');
+            try {
+                const res = await fetch(`${appState.supabaseUrl}/rest/v1/questoes?select=id,data,updated_at`, {
+                    headers: getSupabaseHeaders()
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const remoteRows = await res.json();
+
+                const remoteMap = new Map();
+                remoteRows.forEach(row => {
+                    if (row.data && row.data.id) remoteMap.set(row.data.id, row.data);
+                });
+
+                const toUpload = [];
+                appState.notebook.forEach(localItem => {
+                    if (!remoteMap.has(localItem.id)) {
+                        remoteMap.set(localItem.id, localItem);
+                        toUpload.push({
+                            id: localItem.id,
+                            data: localItem,
+                            updated_at: new Date().toISOString()
+                        });
+                    }
+                });
+
+                if (toUpload.length > 0) {
+                    await fetch(`${appState.supabaseUrl}/rest/v1/questoes`, {
+                        method: 'POST',
+                        headers: { ...getSupabaseHeaders(), 'Prefer': 'resolution=merge-duplicates' },
+                        body: JSON.stringify(toUpload)
+                    });
+                }
+
+                appState.notebook = Array.from(remoteMap.values()).sort((a, b) => Number(b.id) - Number(a.id));
+                localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+                appState.cloudConnected = true;
+                updateCloudStatusBadge('connected');
+                updateNotebookStats();
+                populateArchiveSelect();
+                if (!document.getElementById('tab-notebook')?.classList.contains('hidden')) {
+                    renderNotebook();
+                }
+                if (notify) showToast(`Nuvem sincronizada (${appState.notebook.length} questões)!`, 'success');
+                return true;
+            } catch (err) {
+                console.error('Erro Supabase:', err);
+                appState.cloudConnected = false;
+                updateCloudStatusBadge('error');
+                if (notify) showToast('Falha ao conectar no Supabase. Verifique URL, chave e tabela questoes.', 'error');
+                return false;
+            }
+        }
+
+        async function pushItemToCloud(item) {
+            if (!appState.supabaseUrl || !appState.supabaseKey) return;
+            try {
+                updateCloudStatusBadge('syncing');
+                const res = await fetch(`${appState.supabaseUrl}/rest/v1/questoes`, {
+                    method: 'POST',
+                    headers: { ...getSupabaseHeaders(), 'Prefer': 'resolution=merge-duplicates' },
+                    body: JSON.stringify({
+                        id: item.id,
+                        data: item,
+                        updated_at: new Date().toISOString()
+                    })
+                });
+                if (!res.ok) throw new Error('Falha ao salvar na nuvem');
+                updateCloudStatusBadge('connected');
+            } catch (e) {
+                updateCloudStatusBadge('error');
+            }
+        }
+
+        async function deleteItemFromCloud(id) {
+            if (!appState.supabaseUrl || !appState.supabaseKey) return;
+            try {
+                await fetch(`${appState.supabaseUrl}/rest/v1/questoes?id=eq.${encodeURIComponent(id)}`, {
+                    method: 'DELETE',
+                    headers: getSupabaseHeaders()
+                });
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // CICLO DE ARQUIVAMENTO POR MATÉRIA (DRIVE)
+        // ==========================================
+        function populateArchiveSelect() {
+            const sel = document.getElementById('archive-subject-select');
+            if (!sel) return;
+            const counts = {};
+            appState.notebook.forEach(item => {
+                const subj = (item.subject || 'Geral').split('-')[0].trim();
+                counts[subj] = (counts[subj] || 0) + 1;
+            });
+            sel.innerHTML = '<option value="">Selecione uma matéria para arquivar...</option>' +
+                Object.keys(counts).sort().map(s => `<option value="${escapeHTML(s)}">${escapeHTML(s)} (${counts[s]} questões)</option>`).join('');
+        }
+
+        function archiveSubjectToDrive() {
+            const subj = document.getElementById('archive-subject-select')?.value;
+            if (!subj) {
+                showToast('Selecione uma matéria na lista primeiro.', 'warning');
+                return;
+            }
+            const items = appState.notebook.filter(i => (i.subject || 'Geral').split('-')[0].trim() === subj);
+            if (!items.length) return;
+
+            const safeName = subj.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const dateTag = new Date().toISOString().slice(0, 10);
+
+            const jsonBlob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+            const jsonUrl = URL.createObjectURL(jsonBlob);
+            const a1 = document.createElement('a');
+            a1.href = jsonUrl;
+            a1.download = `arquivo-${safeName}-${dateTag}.json`;
+            a1.click();
+            URL.revokeObjectURL(jsonUrl);
+
+            let md = `# Arquivo de Estudos — ${subj}\nData do fechamento: ${new Date().toLocaleDateString('pt-BR')}\nTotal de questões: ${items.length}\n\n---\n\n`;
+            items.forEach((item, idx) => {
+                md += `## ${idx + 1}. ${item.subject} (${item.date})\n`;
+                if (item.userAttempt) md += `**Minha Tentativa:** ${item.userAttempt} (${item.confidenceLevel || ''})\n\n`;
+                if (item.summary) md += `**Enunciado:** ${item.summary}\n\n`;
+                if (item.note) md += `> **Minha Anotação:** ${item.note}\n\n`;
+                md += `${item.analysis}\n\n---\n\n`;
+            });
+            const mdBlob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const mdUrl = URL.createObjectURL(mdBlob);
+            const a2 = document.createElement('a');
+            a2.href = mdUrl;
+            a2.download = `caderno-${safeName}-${dateTag}.md`;
+            setTimeout(() => {
+                a2.click();
+                URL.revokeObjectURL(mdUrl);
+            }, 350);
+
+            showToast(`Arquivos de "${subj}" baixados! Salve na sua pasta do Google Drive.`, 'success');
+        }
+
+        async function purgeArchivedSubject() {
+            const subj = document.getElementById('archive-subject-select')?.value;
+            if (!subj) {
+                showToast('Selecione uma matéria na lista primeiro.', 'warning');
+                return;
+            }
+            const items = appState.notebook.filter(i => (i.subject || 'Geral').split('-')[0].trim() === subj);
+            if (!items.length) return;
+
+            if (!confirm(`Tem certeza que já salvou o backup de "${subj}" no Google Drive e deseja remover essas ${items.length} questões da nuvem ativa?`)) {
+                return;
+            }
+
+            for (const item of items) {
+                await deleteItemFromCloud(item.id);
+            }
+            appState.notebook = appState.notebook.filter(i => (i.subject || 'Geral').split('-')[0].trim() !== subj);
+            localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+            updateNotebookStats();
+            populateArchiveSelect();
+            renderNotebook();
+            showToast(`Matéria "${subj}" arquivada e removida da nuvem ativa!`, 'success');
+        }
+
+        // ==========================================
+        // GERENCIAMENTO DAS CHAVES DE API (GROQ & GEMINI)
+        // ==========================================
+        function selectProvider(provider, persist = true) {
+            appState.provider = provider;
+            if (persist) {
+                localStorage.setItem('estudo_ai_provider', provider);
+            }
+
+            const btnGroq = document.getElementById('btn-provider-groq');
+            const btnGemini = document.getElementById('btn-provider-gemini');
+
+            if (btnGroq && btnGemini) {
+                if (provider === 'groq') {
+                    btnGroq.className = 'py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 font-bold text-xs flex items-center justify-center gap-1.5 transition';
+                    btnGemini.className = 'py-2.5 px-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs flex items-center justify-center gap-1.5 transition';
+                } else {
+                    btnGemini.className = 'py-2.5 px-3 rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-900 font-bold text-xs flex items-center justify-center gap-1.5 transition';
+                    btnGroq.className = 'py-2.5 px-3 rounded-xl border border-slate-200 bg-white text-slate-600 font-semibold text-xs flex items-center justify-center gap-1.5 transition';
+                }
+            }
+            updateSavedKeyBadges();
+            updateApiStatusBadge();
+        }
+
+        function updateSavedKeyBadges() {
+            const bGroq = document.getElementById('badge-saved-groq');
+            const bGemini = document.getElementById('badge-saved-gemini');
+            if (bGroq) bGroq.classList.toggle('hidden', !appState.keys.groq);
+            if (bGemini) bGemini.classList.toggle('hidden', !appState.keys.gemini);
+        }
+
+        function quickToggleProvider() {
+            if (!appState.keys.groq && !appState.keys.gemini) {
+                switchTab('settings');
+                return;
+            }
+            if (appState.provider === 'groq') {
+                if (appState.keys.gemini) {
+                    selectProvider('gemini', true);
+                    showToast('Alternado para Google Gemini!', 'success');
+                } else {
+                    switchTab('settings');
+                    showToast('Salve sua chave do Gemini nos Ajustes para alternar.', 'info');
+                }
+            } else {
+                if (appState.keys.groq) {
+                    selectProvider('groq', true);
+                    showToast('Alternado para Groq Cloud!', 'success');
+                } else {
+                    switchTab('settings');
+                    showToast('Salve sua chave da Groq nos Ajustes para alternar.', 'info');
+                }
+            }
+        }
+
+        function toggleInputVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function saveApiKey() {
+            const groqKey = (document.getElementById('api-key-groq')?.value || '').trim();
+            const geminiKey = (document.getElementById('api-key-gemini')?.value || '').trim();
+            const groqModel = document.getElementById('model-select-groq')?.value || 'openai/gpt-oss-20b';
+            const geminiModel = document.getElementById('model-select-gemini')?.value || 'gemini-2.5-flash';
+            const autoFallback = document.getElementById('auto-fallback-check')?.checked ?? true;
+
+            if (!groqKey && !geminiKey) {
+                showToast('Cole pelo menos uma chave de API (Groq ou Gemini).', 'warning');
+                return;
+            }
+
+            if (appState.provider === 'gemini' && !geminiKey) {
+                showToast('Cole sua chave AIzaSy... no campo do Google Gemini antes de salvar.', 'warning');
+                document.getElementById('api-key-gemini')?.focus();
+                return;
+            }
+            if (appState.provider === 'groq' && !groqKey) {
+                showToast('Cole sua chave gsk_... no campo da Groq Cloud antes de salvar.', 'warning');
+                document.getElementById('api-key-groq')?.focus();
+                return;
+            }
+
+            appState.keys.groq = groqKey;
+            appState.keys.gemini = geminiKey;
+            appState.models.groq = groqModel;
+            appState.models.gemini = geminiModel;
+            appState.autoFallback = autoFallback;
+
+            localStorage.setItem('estudo_key_groq', groqKey);
+            localStorage.setItem('estudo_key_gemini', geminiKey);
+            localStorage.setItem('estudo_model_groq', groqModel);
+            localStorage.setItem('estudo_model_gemini', geminiModel);
+            localStorage.setItem('estudo_auto_fallback', String(autoFallback));
+            localStorage.setItem('estudo_ai_provider', appState.provider);
+
+            selectProvider(appState.provider, true);
+            updateApiStatusBadge();
+
+            const savedCount = (groqKey ? 1 : 0) + (geminiKey ? 1 : 0);
+            const activeLabel = appState.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini';
+            const fb = document.getElementById('provider-save-feedback');
+            if (fb) {
+                fb.textContent = `✓ ${savedCount} chave(s) salva(s)! Provedor ativo: ${activeLabel}.`;
+                fb.classList.remove('hidden');
+            }
+            showToast(`${savedCount} chave(s) salva(s)! Ativo: ${activeLabel}`, 'success');
+        }
+
+        function updateApiStatusBadge() {
+            const badge = document.getElementById('api-status-badge');
+            if (!badge) return;
+            const activeKey = appState.keys[appState.provider];
+            const hasBoth = Boolean(appState.keys.groq && appState.keys.gemini);
+
+            if (activeKey) {
+                badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 cursor-pointer active:scale-95 transition';
+                const label = appState.provider === 'groq' ? '⚡ Groq' : '✨ Gemini';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${label}${hasBoth ? ' ⇄' : ''}`;
+            } else {
+                badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-pointer';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Configurar API';
+            }
+        }
+
+        // ==========================================
+        // MANIPULAÇÃO E COMPRESSÃO DE ARQUIVO
+        // ==========================================
+        function compressImageDataUrl(dataUrl, maxDim = 1280, quality = 0.82) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    let { width, height } = img;
+                    if (width <= maxDim && height <= maxDim && dataUrl.length < 350000) {
+                        resolve({ dataUrl, mimeType: 'image/jpeg' });
+                        return;
+                    }
+                    if (width > height && width > maxDim) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else if (height > maxDim) {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve({
+                        dataUrl: canvas.toDataURL('image/jpeg', quality),
+                        mimeType: 'image/jpeg'
+                    });
+                };
+                img.onerror = () => resolve({ dataUrl, mimeType: 'image/jpeg' });
+                img.src = dataUrl;
+            });
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 15 * 1024 * 1024) {
+                showToast('O arquivo é muito grande (máx. 15MB).', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                let dataUrl = e.target.result;
+                let mimeType = file.type;
+
+                if (file.type.startsWith('image/')) {
+                    const compressed = await compressImageDataUrl(dataUrl);
+                    dataUrl = compressed.dataUrl;
+                    mimeType = compressed.mimeType;
+                }
+
+                const base64Data = dataUrl.split(',')[1];
+                appState.currentFile = {
+                    base64: base64Data,
+                    mimeType: mimeType,
+                    name: file.name,
+                    size: (file.size / 1024).toFixed(1) + ' KB'
+                };
+
+                document.getElementById('upload-dropzone').classList.add('hidden');
+                document.getElementById('file-preview-box').classList.remove('hidden');
+                document.getElementById('btn-clear-input').classList.remove('hidden');
+                document.getElementById('file-name-display').textContent = file.name;
+                document.getElementById('file-size-display').textContent = appState.currentFile.size;
+
+                const imgPrev = document.getElementById('image-preview');
+                const pdfIcon = document.getElementById('pdf-preview-icon');
+
+                if (file.type.startsWith('image/')) {
+                    imgPrev.src = dataUrl;
+                    imgPrev.classList.remove('hidden');
+                    pdfIcon.classList.add('hidden');
+                } else {
+                    imgPrev.classList.add('hidden');
+                    pdfIcon.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeSelectedFile() {
+            appState.currentFile = null;
+            const uploadEl = document.getElementById('file-upload');
+            if (uploadEl) uploadEl.value = '';
+            document.getElementById('upload-dropzone')?.classList.remove('hidden');
+            document.getElementById('file-preview-box')?.classList.add('hidden');
+        }
+
+        function resetStudyForm() {
+            removeSelectedFile();
+            const txt = document.getElementById('user-prompt-text');
+            if (txt) {
+                txt.value = '';
+                txt.style.height = '';
+            }
+            const attemptEl = document.getElementById('user-attempt-input');
+            if (attemptEl) attemptEl.value = '';
+            const defaultConf = document.querySelector('input[name="attempt-confidence"][value="Convicto"]');
+            if (defaultConf) defaultConf.checked = true;
+
+            document.getElementById('result-workspace')?.classList.add('hidden');
+            document.getElementById('btn-clear-input')?.classList.add('hidden');
+            appState.currentQuestionId = null;
+        }
+
+        // ==========================================
+        // ANÁLISE DA QUESTÃO PRINCIPAL
+        // ==========================================
+        async function analyzeQuestion() {
+            const extraText = (document.getElementById('user-prompt-text')?.value || '').trim();
+            const userAttempt = (document.getElementById('user-attempt-input')?.value || '').trim();
+            const confidenceLevel = document.querySelector('input[name="attempt-confidence"]:checked')?.value || 'Convicto';
+
+            if (!appState.currentFile && !extraText) {
+                showToast('Envie uma foto/PDF ou cole o texto da questão.', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-analyze');
+            const loading = document.getElementById('loading-state');
+            const workspace = document.getElementById('result-workspace');
+            const badgeEl = document.getElementById('detected-subject-badge');
+            const contentEl = document.getElementById('ai-response-content');
+
+            if (btn) btn.disabled = true;
+            loading?.classList.remove('hidden');
+            workspace?.classList.add('hidden');
+            if (badgeEl) badgeEl.textContent = 'Analisando...';
+            if (contentEl) contentEl.innerHTML = '';
+
+            const attemptInstruction = userAttempt
+                ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(O aluno respondeu: "${userAttempt}" marcando o nível de confiança: "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!**, compare a resposta dele com o gabarito oficial e faça uma análise diagnóstica específica considerando que ele estava "${confidenceLevel}" — ex: se errou estando Convicto, alerte sobre o ponto cego; se acertou no Chute, explique a regra para fixar).\n`
+                : '';
+
+            const systemPrompt = `Você é um tutor especialista em concursos públicos, focado em aprendizagem visual e altamente escaneável (sem paredões de texto).
+Analise a questão enviada (imagem, PDF ou texto) e responda ESTRITAMENTE nesta estrutura visual em Markdown:
+
+MATERIA: [Disciplina Principal em maiúsculas] - [Tópico Específico]
+RESUMO_ENUNCIADO: [Resumo fiel do enunciado em 1 ou 2 linhas]
+${attemptInstruction}
+### 🎯 Gabarito & Ideia Central
+- **Resposta Correta:** [Letra/Certo ou Errado] — [Explicação direta em 1 frase]
+- **Fluxo Lógico:** \`[Regra Geral]\` ➔ \`[Exceção / Condição]\` ➔ \`[Resultado na Questão]\`
+
+### 🔍 Raio-X das Alternativas
+(Liste cada alternativa ou item começando exatamente com ✅ para a correta ou ❌ para as incorretas, explicando de forma objetiva o porquê)
+- ✅ **Item Correto:** ...
+- ❌ **Item Incorreto:** ...
+
+### 📊 Quadro Esquematizado (Compare & Memorize)
+(Crie uma tabela Markdown curta comparando os conceitos-chave cobrados na questão para fixação visual)
+
+> ⚠️ **Pegadinha de Banca:** [Destaque o detalhe que mais derruba candidatos nesse tema]
+
+${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}`;
+
+            let streamStarted = false;
+            let lastRenderTime = 0;
+
+            try {
+                const rawResponse = await callAIWithRetry(systemPrompt, appState.currentFile, (partialText) => {
+                    if (!streamStarted && partialText.trim().length > 15) {
+                        streamStarted = true;
+                        loading?.classList.add('hidden');
+                        workspace?.classList.remove('hidden');
+                    }
+                    const now = Date.now();
+                    if (streamStarted && now - lastRenderTime > 90) {
+                        lastRenderTime = now;
+                        const { subject, cleanMarkdown } = extractSubjectAndCleanText(partialText);
+                        if (badgeEl && subject !== 'Geral') badgeEl.textContent = subject;
+                        renderVisualMarkdown(cleanMarkdown, contentEl);
+                    }
+                });
+
+                const { subject, summary, cleanMarkdown } = extractSubjectAndCleanText(rawResponse);
+
+                appState.currentQuestionId = Date.now().toString();
+                appState.currentRawAnalysis = cleanMarkdown;
+                appState.currentDetectedSubject = subject;
+                appState.currentQuestionSummary = summary || extraText.slice(0, 140) || 'Questão enviada via arquivo';
+                appState.currentUserAttempt = userAttempt;
+                appState.currentConfidenceLevel = userAttempt ? confidenceLevel : '';
+                appState.deepDiveAssets = [];
+
+                if (badgeEl) badgeEl.textContent = subject;
+                const subjEdit = document.getElementById('subject-edit-input');
+                if (subjEdit) subjEdit.value = subject;
+                renderVisualMarkdown(cleanMarkdown, contentEl);
+
+                const deepDiveEl = document.getElementById('deep-dive-container');
+                if (deepDiveEl) deepDiveEl.innerHTML = '';
+                const noteTextEl = document.getElementById('personal-note-text');
+                if (noteTextEl) noteTextEl.value = '';
+                setNoteColor('white');
+
+                loading?.classList.add('hidden');
+                workspace?.classList.remove('hidden');
+                workspace?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                await autoSaveToNotebook();
+
+            } catch (error) {
+                loading?.classList.add('hidden');
+                showToast(error.message || 'Erro ao analisar a questão.', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function renderVisualMarkdown(markdownText, targetEl) {
+            if (!targetEl) return;
+            targetEl.innerHTML = marked.parse(markdownText);
+            targetEl.querySelectorAll('li').forEach(li => {
+                const txt = li.textContent.trim();
+                if (txt.startsWith('✅')) {
+                    li.classList.add('opt-correct');
+                } else if (txt.startsWith('❌')) {
+                    li.classList.add('opt-wrong');
+                }
+            });
+        }
+
+        function extractSubjectAndCleanText(text) {
+            let subject = 'Geral';
+            let summary = '';
+            let cleanLines = [];
+
+            const lines = text.split('\n');
+            for (const line of lines) {
+                if (line.trim().startsWith('MATERIA:')) {
+                    subject = line.replace('MATERIA:', '').trim();
+                } else if (line.trim().startsWith('RESUMO_ENUNCIADO:')) {
+                    summary = line.replace('RESUMO_ENUNCIADO:', '').trim();
+                } else {
+                    cleanLines.push(line);
+                }
+            }
+            return {
+                subject: subject || 'Geral',
+                summary: summary,
+                cleanMarkdown: cleanLines.join('\n').trim()
+            };
+        }
+
+        // ==========================================
+        // MOTOR DE IA MULTI-PROVEDOR
+        // ==========================================
+        async function fetchWithTimeout(url, options, timeoutMs = 18000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                return await fetch(url, { ...options, signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function readOpenAIStream(response, onChunk) {
+            if (!response.body || !onChunk) {
+                const data = await response.json();
+                return data?.choices?.[0]?.message?.content || '';
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let fullText = '';
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith('data:')) continue;
+                    const dataStr = trimmed.slice(5).trim();
+                    if (dataStr === '[DONE]') continue;
+                    try {
+                        const parsed = JSON.parse(dataStr);
+                        const delta = parsed?.choices?.[0]?.delta?.content;
+                        if (delta) {
+                            fullText += delta;
+                            onChunk(fullText);
+                        }
+                    } catch (e) {}
+                }
+            }
+            return fullText;
+        }
+
+        async function readGeminiStream(response, onChunk) {
+            if (!response.body || !onChunk) {
+                const data = await response.json();
+                return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let fullText = '';
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith('data:')) continue;
+                    const dataStr = trimmed.slice(5).trim();
+                    if (!dataStr || dataStr === '[DONE]') continue;
+                    try {
+                        const parsed = JSON.parse(dataStr);
+                        const textPart = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (textPart) {
+                            fullText += textPart;
+                            onChunk(fullText);
+                        }
+                    } catch (e) {}
+                }
+            }
+            return fullText;
+        }
+
+        async function callSingleProvider(provider, promptText, fileObj = null, onChunk = null) {
+            const apiKey = appState.keys[provider];
+            if (!apiKey) {
+                throw new Error(`Chave de API do ${provider === 'groq' ? 'Groq' : 'Gemini'} não configurada.`);
+            }
+
+            if (provider === 'groq') {
+                if (fileObj && fileObj.mimeType === 'application/pdf') {
+                    throw new Error('GROQ_UNSUPPORTED_PDF');
+                }
+
+                const preferred = appState.models.groq || 'openai/gpt-oss-20b';
+                const modelsToTry = fileObj
+                    ? ['meta-llama/llama-4-scout-17b-16e-instruct']
+                    : [preferred, preferred === 'openai/gpt-oss-20b' ? 'llama-3.3-70b-versatile' : 'openai/gpt-oss-20b'];
+
+                let lastErr = '';
+                for (const modelName of modelsToTry) {
+                    const userContent = fileObj
+                        ? [
+                            { type: 'text', text: promptText },
+                            { type: 'image_url', image_url: { url: `data:${fileObj.mimeType};base64,${fileObj.base64}` } }
+                          ]
+                        : promptText;
+
+                    const payload = {
+                        model: modelName,
+                        messages: [{ role: 'user', content: userContent }],
+                        max_tokens: 2048,
+                        stream: Boolean(onChunk)
+                    };
+                    if (!modelName.includes('gpt-oss')) {
+                        payload.temperature = 0.25;
+                    }
+
+                    try {
+                        const response = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${apiKey}`
+                            },
+                            body: JSON.stringify(payload)
+                        }, 18000);
+
+                        if (!response.ok) {
+                            const errData = await response.json().catch(() => ({}));
+                            lastErr = errData?.error?.message || `HTTP ${response.status}`;
+                            continue;
+                        }
+
+                        const text = await readOpenAIStream(response, onChunk);
+                        if (text) return text;
+                    } catch (e) {
+                        lastErr = e.name === 'AbortError' ? 'Tempo limite excedido (18s).' : (e.message || 'Erro de conexão.');
+                        continue;
+                    }
+                }
+                throw new Error(lastErr || 'Não foi possível obter resposta da Groq.');
+            }
+
+            const preferredGemini = appState.models.gemini || 'gemini-2.5-flash';
+            const geminiModels = [
+                preferredGemini,
+                preferredGemini === 'gemini-2.5-flash' ? 'gemini-3.5-flash-lite' : 'gemini-2.5-flash'
+            ];
+
+            let lastGeminiErr = '';
+            for (const modelName of geminiModels) {
+                const endpoint = onChunk
+                    ? `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`
+                    : `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+                const parts = [{ text: promptText }];
+                if (fileObj) {
+                    parts.push({
+                        inlineData: {
+                            mimeType: fileObj.mimeType,
+                            data: fileObj.base64
+                        }
+                    });
+                }
+
+                try {
+                    const response = await fetchWithTimeout(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts }],
+                            generationConfig: { temperature: 0.25, maxOutputTokens: 2048 }
+                        })
+                    }, 22000);
+
+                    if (!response.ok) {
+                        const errData = await response.json().catch(() => ({}));
+                        lastGeminiErr = errData?.error?.message || `HTTP ${response.status}`;
+                        continue;
+                    }
+
+                    const text = await readGeminiStream(response, onChunk);
+                    if (text) return text;
+                } catch (e) {
+                    lastGeminiErr = e.name === 'AbortError' ? 'Tempo limite excedido (22s).' : (e.message || 'Erro de conexão.');
+                    continue;
+                }
+            }
+            throw new Error(lastGeminiErr || 'Não foi possível obter resposta do Gemini.');
+        }
+
+        async function callAIWithRetry(promptText, fileObj = null, onChunk = null) {
+            if (!appState.keys.groq && !appState.keys.gemini) {
+                switchTab('settings');
+                throw new Error('Configure sua chave de API na aba Ajustes primeiro.');
+            }
+
+            const primary = appState.keys[appState.provider]
+                ? appState.provider
+                : (appState.keys.groq ? 'groq' : 'gemini');
+            const secondary = primary === 'groq' ? 'gemini' : 'groq';
+
+            if (primary === 'groq' && fileObj && fileObj.mimeType === 'application/pdf') {
+                if (appState.keys.gemini) {
+                    showToast('Usando chave Gemini salva para ler o PDF...', 'info');
+                    return await callSingleProvider('gemini', promptText, fileObj, onChunk);
+                } else {
+                    throw new Error('Para ler PDFs, adicione sua chave gratuita do Google Gemini nos Ajustes.');
+                }
+            }
+
+            try {
+                return await callSingleProvider(primary, promptText, fileObj, onChunk);
+            } catch (primaryErr) {
+                if (appState.autoFallback && appState.keys[secondary]) {
+                    const secName = secondary === 'groq' ? 'Groq' : 'Gemini';
+                    const priName = primary === 'groq' ? 'Groq' : 'Gemini';
+                    showToast(`${priName} demorou/atingiu limite. Alternando para ${secName}...`, 'warning');
+                    return await callSingleProvider(secondary, promptText, fileObj, onChunk);
+                }
+                throw primaryErr;
+            }
+        }
+
+        // ==========================================
+        // ESTAÇÃO DE APROFUNDAMENTO ATIVO
+        // ==========================================
+        async function generateStudyAsset(type) {
+            if (!appState.currentRawAnalysis) return;
+
+            const container = document.getElementById('deep-dive-container');
+            const loaderId = 'asset-loader-' + Date.now();
+            
+            const titles = {
+                mindmap: '🗺️ Mapa Mental Estruturado',
+                flashcards: '🃏 Flashcards de Memorização Ativa',
+                simulado: '📝 Questões Inéditas para Treino'
+            };
+
+            const loaderHtml = `
+                <div id="${loaderId}" class="p-4 rounded-xl border border-indigo-100 bg-indigo-50/40 flex items-center gap-3">
+                    <div class="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs font-medium text-indigo-900">Gerando ${titles[type]}...</span>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', loaderHtml);
+
+            let prompt = '';
+            if (type === 'mindmap') {
+                prompt = `Com base na questão e análise abaixo, crie um MAPA MENTAL HIERÁRQUICO super claro em formato de árvore usando indentação e emojis para memorização rápida.\n\nContexto:\n${appState.currentRawAnalysis}`;
+            } else if (type === 'flashcards') {
+                prompt = `Com base na questão e análise abaixo, crie 4 FLASHCARDS de revisão ativa.
+Responda APENAS um JSON válido (sem blocos de código markdown, sem texto antes ou depois) neste formato exato:
+[{"frente": "Pergunta curta e direta?", "verso": "Resposta objetiva e macete."}]
+
+Contexto:\n${appState.currentRawAnalysis}`;
+            } else if (type === 'simulado') {
+                prompt = `Com base no mesmo tema e estilo de banca da análise abaixo, crie 2 QUESTÕES INÉDITAS de fixação (estilo Certo/Errado ou Múltipla Escolha) com o gabarito comentado oculto logo abaixo de cada uma.\n\nContexto:\n${appState.currentRawAnalysis}`;
+            }
+
+            try {
+                const result = await callAIWithRetry(prompt);
+                document.getElementById(loaderId)?.remove();
+
+                if (type === 'flashcards') {
+                    renderFlashcardsBlock(result, container);
+                } else {
+                    const cardHtml = `
+                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 space-y-2 animate-fade-in">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <span class="text-xs font-bold text-indigo-950">${titles[type]}</span>
+                            </div>
+                            <div class="prose-study text-xs">${marked.parse(result)}</div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                }
+
+                appState.deepDiveAssets.push({ type, title: titles[type], content: result });
+                await autoSaveToNotebook();
+
+            } catch (error) {
+                document.getElementById(loaderId)?.remove();
+                showToast('Erro ao gerar material: ' + error.message, 'error');
+            }
+        }
+
+        function renderFlashcardsBlock(rawText, container) {
+            let cards = [];
+            try {
+                const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+                cards = JSON.parse(cleaned);
+            } catch (e) {
+                const fallbackHtml = `
+                    <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                        <span class="text-xs font-bold text-emerald-900">🃏 Flashcards de Revisão</span>
+                        <div class="prose-study text-xs">${marked.parse(rawText)}</div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', fallbackHtml);
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-2.5 animate-fade-in';
+            wrapper.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-950">🃏 Flashcards (Toque para virar)</span>
+                    <span class="text-[10px] font-medium text-emerald-700">${cards.length} cards</span>
+                </div>
+            `;
+
+            cards.forEach((c, idx) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'flashcard-item bg-white border border-emerald-200/80 rounded-xl p-3 shadow-sm';
+                cardEl.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <p class="text-xs font-bold text-slate-800"><span class="text-emerald-600 mr-1">#${idx+1}</span> ${escapeHTML(c.frente)}</p>
+                        <i data-lucide="rotate-cw" class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5"></i>
+                    </div>
+                    <div class="card-answer hidden mt-2 pt-2 border-t border-slate-100 text-xs text-emerald-900 font-medium bg-emerald-50/50 p-2 rounded-lg">
+                        ${escapeHTML(c.verso)}
+                    </div>
+                `;
+                cardEl.onclick = () => {
+                    cardEl.querySelector('.card-answer').classList.toggle('hidden');
+                };
+                wrapper.appendChild(cardEl);
+            });
+
+            container.appendChild(wrapper);
+            try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+        }
+
+        async function askFollowup() {
+            const input = document.getElementById('followup-input');
+            const question = input.value.trim();
+            if (!question || !appState.currentRawAnalysis) return;
+
+            input.value = '';
+            const container = document.getElementById('deep-dive-container');
+            
+            const userBubble = `
+                <div class="bg-indigo-600 text-white text-xs p-3 rounded-xl rounded-br-none ml-8 shadow-sm">
+                    <p class="font-medium">${escapeHTML(question)}</p>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', userBubble);
+
+            const loaderId = 'chat-loader-' + Date.now();
+            container.insertAdjacentHTML('beforeend', `<div id="${loaderId}" class="text-xs text-slate-400 italic pl-2">Tutor digitando...</div>`);
+
+            const prompt = `Você é um tutor particular respondendo a uma dúvida pontual do aluno sobre a questão abaixo. Seja claro, didático e direto ao ponto.\n\nAnálise da Questão:\n${appState.currentRawAnalysis}\n\nDúvida do Aluno: ${question}`;
+
+            try {
+                const reply = await callAIWithRetry(prompt);
+                document.getElementById(loaderId)?.remove();
+
+                const aiBubble = `
+                    <div class="bg-slate-100 border border-slate-200 text-slate-800 text-xs p-3.5 rounded-xl rounded-bl-none mr-4 prose-study animate-fade-in">
+                        ${marked.parse(reply)}
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', aiBubble);
+                
+                appState.deepDiveAssets.push({ type: 'chat', title: `Dúvida: ${question}`, content: reply });
+                await autoSaveToNotebook();
+
+            } catch (error) {
+                document.getElementById(loaderId)?.remove();
+                showToast(error.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // ANOTAÇÕES COLORIDAS E SALVAMENTO NO CADERNO
+        // ==========================================
+        const colorStyles = {
+            white: 'border-slate-200 bg-white',
+            amber: 'border-amber-400 bg-amber-50/70',
+            rose: 'border-rose-400 bg-rose-50/70',
+            emerald: 'border-emerald-400 bg-emerald-50/70',
+            sky: 'border-sky-400 bg-sky-50/70'
+        };
+
+        function setNoteColor(color) {
+            appState.currentNoteColor = color;
+            const card = document.getElementById('personal-note-card');
+            if (card) {
+                card.className = `rounded-2xl shadow-sm border-2 p-4 space-y-3 transition-colors duration-200 ${colorStyles[color] || colorStyles.white}`;
+            }
+        }
+
+        async function autoSaveToNotebook() {
+            if (!appState.currentQuestionId) return;
+            const noteText = document.getElementById('personal-note-text')?.value.trim() || '';
+            const subjectVal = document.getElementById('subject-edit-input')?.value.trim() || appState.currentDetectedSubject;
+
+            const existingIndex = appState.notebook.findIndex(item => item.id === appState.currentQuestionId);
+            const record = {
+                id: appState.currentQuestionId,
+                date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                subject: subjectVal,
+                summary: appState.currentQuestionSummary,
+                userAttempt: appState.currentUserAttempt || '',
+                confidenceLevel: appState.currentConfidenceLevel || '',
+                analysis: appState.currentRawAnalysis,
+                note: noteText,
+                color: appState.currentNoteColor,
+                assets: appState.deepDiveAssets
+            };
+
+            if (existingIndex >= 0) {
+                appState.notebook[existingIndex] = record;
+            } else {
+                appState.notebook.unshift(record);
+            }
+
+            localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+            updateNotebookStats();
+            await pushItemToCloud(record);
+        }
+
+        async function saveCurrentQuestionToNotebook() {
+            await autoSaveToNotebook();
+            showToast('Anotação e questão salvas no Caderno e Nuvem!', 'success');
+        }
+
+        function updateNotebookStats() {
+            const total = appState.notebook.length;
+            const subjects = new Set(appState.notebook.map(i => (i.subject || 'Geral').split('-')[0].trim())).size;
+            const urgent = appState.notebook.filter(i => i.color === 'rose').length;
+
+            const elTotal = document.getElementById('stat-total');
+            const elSubj = document.getElementById('stat-subjects');
+            const elUrg = document.getElementById('stat-urgent');
+            if (elTotal) elTotal.textContent = total;
+            if (elSubj) elSubj.textContent = subjects;
+            if (elUrg) elUrg.textContent = urgent;
+
+            const navBadge = document.getElementById('nav-badge-count');
+            if (navBadge) {
+                if (total > 0) {
+                    navBadge.textContent = total;
+                    navBadge.classList.remove('hidden');
+                } else {
+                    navBadge.classList.add('hidden');
+                }
+            }
+        }
+
+        // ==========================================
+        // RENDERIZAÇÃO DO MEU CADERNO (PASTAS POR MATÉRIA)
+        // ==========================================
+        function filterNotebookColor(color) {
+            appState.colorFilter = color;
+            document.querySelectorAll('.filter-chip').forEach(btn => {
+                if (btn.dataset.colorFilter === color) {
+                    btn.classList.add('ring-2', 'ring-indigo-500', 'ring-offset-1');
+                } else {
+                    btn.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-1');
+                }
+            });
+            renderNotebook();
+        }
+
+        function toggleFolder(subjectKey) {
+            appState.openFolders[subjectKey] = !appState.openFolders[subjectKey];
+            localStorage.setItem('estudo_open_folders', JSON.stringify(appState.openFolders));
+            renderNotebook();
+        }
+
+        function toggleAllFolders() {
+            const groupedSubjects = new Set(appState.notebook.map(i => (i.subject || 'Geral').split('-')[0].trim().toUpperCase()));
+            const anyClosed = Array.from(groupedSubjects).some(s => !appState.openFolders[s]);
+            groupedSubjects.forEach(s => {
+                appState.openFolders[s] = anyClosed;
+            });
+            localStorage.setItem('estudo_open_folders', JSON.stringify(appState.openFolders));
+            const btn = document.getElementById('btn-toggle-folders');
+            if (btn) btn.textContent = anyClosed ? 'Recolher Tudo' : 'Expandir Tudo';
+            renderNotebook();
+        }
+
+        function renderNotebook() {
+            const listEl = document.getElementById('notebook-list');
+            if (!listEl) return;
+            const query = (document.getElementById('notebook-search')?.value || '').toLowerCase().trim();
+
+            const filtered = appState.notebook.filter(item => {
+                const matchColor = appState.colorFilter === 'all' || item.color === appState.colorFilter;
+                const matchText = !query || 
+                    (item.subject && item.subject.toLowerCase().includes(query)) ||
+                    (item.summary && item.summary.toLowerCase().includes(query)) ||
+                    (item.note && item.note.toLowerCase().includes(query)) ||
+                    (item.analysis && item.analysis.toLowerCase().includes(query));
+                return matchColor && matchText;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-2">
+                        <i data-lucide="folder-open" class="w-8 h-8 text-slate-300 mx-auto"></i>
+                        <p class="text-sm font-semibold text-slate-700">Nenhuma questão encontrada</p>
+                        <p class="text-xs text-slate-400">Suas questões corrigidas aparecerão agrupadas por matéria aqui.</p>
+                    </div>
+                `;
+                try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+                return;
+            }
+
+            const groups = {};
+            filtered.forEach(item => {
+                const mainSubject = (item.subject || 'Geral').split('-')[0].trim().toUpperCase();
+                if (!groups[mainSubject]) groups[mainSubject] = [];
+                groups[mainSubject].push(item);
+            });
+
+            const sortedSubjects = Object.keys(groups).sort();
+
+            listEl.innerHTML = sortedSubjects.map(subj => {
+                const items = groups[subj];
+                const isOpen = query.length > 0 || appState.colorFilter !== 'all' || Boolean(appState.openFolders[subj]);
+                const urgentCount = items.filter(i => i.color === 'rose').length;
+                const safeSubjArg = subj.replace(/'/g, "\\'");
+
+                const cardsHtml = items.map(item => {
+                    const cardTheme = colorStyles[item.color] || colorStyles.white;
+                    const colorDot = {
+                        white: 'bg-slate-300',
+                        amber: 'bg-amber-500',
+                        rose: 'bg-rose-500',
+                        emerald: 'bg-emerald-500',
+                        sky: 'bg-sky-500'
+                    }[item.color || 'white'];
+
+                    const topicOnly = item.subject.includes('-') ? item.subject.split('-').slice(1).join('-').trim() : item.subject;
+
+                    return `
+                        <div class="rounded-xl border-2 ${cardTheme} p-3.5 space-y-2 shadow-sm transition">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="w-2.5 h-2.5 rounded-full ${colorDot} shrink-0"></span>
+                                    <span class="text-xs font-bold text-indigo-950 truncate">${escapeHTML(topicOnly)}</span>
+                                </div>
+                                <span class="text-[10px] font-medium text-slate-400 shrink-0">${item.date}</span>
+                            </div>
+
+                            ${item.userAttempt ? `
+                                <div class="text-[11px] font-semibold text-indigo-900 bg-indigo-50/80 px-2.5 py-1 rounded-lg inline-block">
+                                    Sua resposta: ${escapeHTML(item.userAttempt)} (${escapeHTML(item.confidenceLevel || '')})
+                                </div>
+                            ` : ''}
+
+                            <p class="text-xs text-slate-700 font-medium line-clamp-2">${escapeHTML(item.summary)}</p>
+
+                            ${item.note ? `
+                                <div class="bg-white/90 border border-slate-200/80 rounded-lg p-2 text-xs text-slate-800">
+                                    <span class="font-bold text-[10px] uppercase text-slate-400 block mb-0.5">Minha Anotação:</span>
+                                    ${escapeHTML(item.note)}
+                                </div>
+                            ` : ''}
+
+                            <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                                <button type="button" onclick="openQuestionFromNotebook('${item.id}')" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                    <i data-lucide="eye" class="w-3.5 h-3.5"></i> Abrir Revisão
+                                </button>
+                                <button type="button" onclick="deleteNotebookItem('${item.id}')" class="text-xs text-slate-400 hover:text-rose-600 p-1">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <button type="button" onclick="toggleFolder('${safeSubjArg}')" class="w-full px-4 py-3.5 flex items-center justify-between bg-slate-50/80 hover:bg-slate-100/80 transition text-left">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                                    <i data-lucide="${isOpen ? 'folder-open' : 'folder'}" class="w-4 h-4"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="text-xs font-extrabold text-slate-900 truncate">${escapeHTML(subj)}</h3>
+                                    <p class="text-[11px] text-slate-500 font-medium">${items.length} ${items.length === 1 ? 'questão salva' : 'questões salvas'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                ${urgentCount > 0 ? `<span class="text-[10px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">${urgentCount} revisar</span>` : ''}
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}"></i>
+                            </div>
+                        </button>
+                        ${isOpen ? `<div class="p-3 space-y-2.5 border-t border-slate-100 bg-white">${cardsHtml}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+        }
+
+        function openQuestionFromNotebook(id) {
+            const item = appState.notebook.find(i => i.id === id);
+            if (!item) return;
+
+            appState.currentQuestionId = item.id;
+            appState.currentRawAnalysis = item.analysis;
+            appState.currentDetectedSubject = item.subject;
+            appState.currentQuestionSummary = item.summary;
+            appState.currentUserAttempt = item.userAttempt || '';
+            appState.currentConfidenceLevel = item.confidenceLevel || '';
+            appState.deepDiveAssets = item.assets || [];
+
+            document.getElementById('detected-subject-badge').textContent = item.subject;
+            document.getElementById('subject-edit-input').value = item.subject;
+            renderVisualMarkdown(item.analysis, document.getElementById('ai-response-content'));
+            document.getElementById('personal-note-text').value = item.note || '';
+            setNoteColor(item.color || 'white');
+
+            const container = document.getElementById('deep-dive-container');
+            container.innerHTML = '';
+            (item.assets || []).forEach(asset => {
+                if (asset.type === 'flashcards') {
+                    renderFlashcardsBlock(asset.content, container);
+                } else {
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/80 space-y-1.5">
+                            <span class="text-xs font-bold text-indigo-950 block border-b border-slate-200 pb-1.5">${escapeHTML(asset.title)}</span>
+                            <div class="prose-study text-xs">${marked.parse(asset.content)}</div>
+                        </div>
+                    `);
+                }
+            });
+
+            switchTab('study');
+            document.getElementById('result-workspace').classList.remove('hidden');
+            document.getElementById('btn-clear-input').classList.remove('hidden');
+            document.getElementById('result-workspace').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteNotebookItem(id) {
+            if (!confirm('Deseja excluir esta questão do seu caderno?')) return;
+            appState.notebook = appState.notebook.filter(i => i.id !== id);
+            localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+            updateNotebookStats();
+            renderNotebook();
+            await deleteItemFromCloud(id);
+            showToast('Questão removida.', 'info');
+        }
+
+        // ==========================================
+        // BACKUP GERAL (.JSON E .MD)
+        // ==========================================
+        function exportBackupJSON() {
+            const dataStr = JSON.stringify(appState.notebook, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `estudo-ativo-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Backup JSON baixado!', 'success');
+        }
+
+        function importBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (!Array.isArray(imported)) throw new Error('Formato inválido');
+                    const existingIds = new Set(appState.notebook.map(i => i.id));
+                    let added = 0;
+                    for (const item of imported) {
+                        if (item.id && !existingIds.has(item.id)) {
+                            appState.notebook.push(item);
+                            await pushItemToCloud(item);
+                            added++;
+                        }
+                    }
+                    localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook));
+                    updateNotebookStats();
+                    showToast(`${added} questões importadas e sincronizadas!`, 'success');
+                } catch (err) {
+                    showToast('Erro ao ler arquivo de backup.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportMarkdownNotes() {
+            if (appState.notebook.length === 0) {
+                showToast('Seu caderno ainda está vazio.', 'warning');
+                return;
+            }
+            let md = `# Meu Caderno de Estudos Ativos\nExportado em: ${new Date().toLocaleDateString('pt-BR')}\n\n---\n\n`;
+            appState.notebook.forEach((item, idx) => {
+                md += `## ${idx + 1}. [${item.subject}] (${item.date})\n`;
+                if (item.userAttempt) md += `**Minha Tentativa:** ${item.userAttempt} (${item.confidenceLevel || ''})\n\n`;
+                if (item.summary) md += `**Resumo:** ${item.summary}\n\n`;
+                if (item.note) md += `> **Minha Anotação:** ${item.note}\n\n`;
+                md += `${item.analysis}\n\n---\n\n`;
+            });
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `caderno-estudos-${new Date().toISOString().slice(0,10)}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Arquivo Markdown (.md) exportado!', 'success');
+        }
+    </script>
+</body>
+</html>
