@@ -1427,7 +1427,7 @@ RESUMO_ENUNCIADO: Aula: [Título objetivo do assunto estudado]
 ${extraText ? `\nPedido / Tema do Aluno:\n${extraText}` : ''}`;
            } else {
                 const attemptInstruction = userAttempt
-                    ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(OBRIGATÓRIO: O aluno informou abaixo a tentativa "${userAttempt}" com nível de confiança "${confidenceLevel}". Comece informando claramente **✅ VOCÊ ACERTOU!** ou **❌ VOCÊ ERROU!**, cite expressamente que ele marcou "${userAttempt}" com confiança "${confidenceLevel}", compare com o gabarito definido em <raciocinio> e dê um feedback específico para esse nível de confiança).\n`
+                    ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(Compare o gabarito oficial que você concluiu em <raciocinio> com a resposta do aluno: "${userAttempt}" | Confiança: "${confidenceLevel}". Se a resposta do aluno corresponder ao gabarito oficial, comece OBRIGATORIAMENTE com **✅ VOCÊ ACERTOU!** — nunca escreva "você errou" se a letra coincidir. Se for diferente do gabarito, comece com **❌ VOCÊ ERROU!**. Em seguida, dê o feedback pedagógico considerando o nível "${confidenceLevel}" sem alterar o veredito).\n`
                     : '';
 
                 userPrompt = `Analise a questão enviada (imagem, PDF ou texto) e responda ESTRITAMENTE nesta estrutura visual em Markdown (iniciando obrigatoriamente pelo bloco oculto <raciocinio>...</raciocinio>):
