@@ -307,7 +307,7 @@
                     <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
                         <label class="text-xs font-bold text-slate-800 block">✨ Chave Google Gemini</label>
                         <div class="relative"><input type="password" id="api-key-gemini" placeholder="AIzaSy..." class="w-full rounded-xl border border-slate-300 bg-white pl-3 pr-10 py-2 text-xs font-mono outline-none"><button type="button" onclick="toggleInputVisibility('api-key-gemini')" class="absolute right-2.5 top-2 text-slate-400"><i data-lucide="eye" class="w-4 h-4"></i></button></div>
-                        <select id="model-select-gemini" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none"><option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Padrão)</option><option value="gemini-2.0-flash">Gemini 2.0 Flash</option></select>
+                        <select id="model-select-gemini" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none"><option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Padrão)</option><option value="gemini-3.8-flash">Gemini 3.8 Flash (Mais recente)</option></select>
                     </div>
                     <label class="flex items-center justify-between p-3 rounded-xl border border-indigo-100 bg-indigo-50/50 cursor-pointer"><div><p class="text-xs font-bold text-indigo-950">Alternância Automática</p><p class="text-[11px] text-indigo-700/80">Alterna entre Groq e Gemini se atingir o limite.</p></div><input type="checkbox" id="auto-fallback-check" checked class="w-4 h-4 accent-indigo-600 rounded"></label>
                     <div id="provider-save-feedback" class="hidden text-xs font-semibold text-emerald-700"></div>
@@ -353,7 +353,7 @@
         let savedGeminiKey = localStorage.getItem('estudo_key_gemini') || (oldProvider === 'gemini' && oldKey ? oldKey : '');
         let savedGroqModel = localStorage.getItem('estudo_model_groq') || (oldProvider === 'groq' && oldModel ? oldModel : 'openai/gpt-oss-20b');
         let savedGeminiModel = localStorage.getItem('estudo_model_gemini') || (oldProvider === 'gemini' && oldModel ? oldModel : 'gemini-2.5-flash');
-        if (savedGeminiModel === 'gemini-2.5-flash-lite' || savedGeminiModel === 'gemini-3.5-flash-lite') savedGeminiModel = 'gemini-2.5-flash';
+        if (savedGeminiModel === 'gemini-2.5-flash-lite' || savedGeminiModel === 'gemini-3.5-flash-lite' || savedGeminiModel === 'gemini-2.0-flash') savedGeminiModel = 'gemini-2.5-flash';
 
         let appState = {
             studyMode: 'question',
@@ -916,7 +916,7 @@ ${appState.currentRawAnalysis}`;
             }
 
             const preferredGemini = appState.models.gemini || 'gemini-2.5-flash';
-            const geminiModels = Array.from(new Set([preferredGemini, 'gemini-2.5-flash', 'gemini-2.0-flash']));
+            const geminiModels = Array.from(new Set([preferredGemini, 'gemini-2.5-flash', 'gemini-3.8-flash']));
             let lastGeminiErr = 'Falha no Gemini.';
 
             for (const modelName of geminiModels) {
