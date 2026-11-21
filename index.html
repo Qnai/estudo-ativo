@@ -708,18 +708,7 @@ REGRAS CRÍTICAS:
 3. Cite a tentativa e o nível de confiança do aluno no Diagnóstico sem alterar o gabarito.
 4. FIDELIDADE LEGAL: NUNCA invente ou chute número de artigo de lei (ex.: a Lei 9.784/99 só vai até o art. 70). Se não tiver certeza absoluta do número exato do artigo, cite apenas o nome da lei ou o princípio jurídico sem inventar numeração.`;
         }
-            const targetContext = (appState.targetExam || appState.targetBoard)
-                ? `CONTEXTO (ALVO ATIVO): Concurso "${appState.targetExam || 'Em definição'}" | Banca "${appState.targetBoard || 'Geral'}".`
-                : 'CONTEXTO: Estudo contínuo de base (pré-edital).';
-            return `Você é um tutor especialista em concursos públicos, rigoroso com a norma culta, a lei seca e a lógica das bancas.
-${personaNotes[appState.mentorPersona] || personaNotes.base}
-${targetContext}
-REGRAS CRÍTICAS:
-1. Abra <raciocinio> no início da correção para analisar as alternativas de forma independente antes do veredito e feche </raciocinio>.
-2. Eleja obrigatoriamente UMA única alternativa como correta (✅).
-3. Cite a tentativa e o nível de confiança do aluno no Diagnóstico sem alterar o gabarito.`;
-        }
-
+           
         async function analyzeQuestion() {
             const extraText = (document.getElementById('user-prompt-text')?.value || '').trim();
             const isLesson = appState.studyMode === 'lesson';
