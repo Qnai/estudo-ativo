@@ -705,6 +705,18 @@ ${targetContext}
 REGRAS CRÍTICAS:
 1. Abra <raciocinio> no início da correção para analisar as alternativas de forma independente antes do veredito e feche </raciocinio>.
 2. Eleja obrigatoriamente UMA única alternativa como correta (✅).
+3. Cite a tentativa e o nível de confiança do aluno no Diagnóstico sem alterar o gabarito.
+4. FIDELIDADE LEGAL: NUNCA invente ou chute número de artigo de lei (ex.: a Lei 9.784/99 só vai até o art. 70). Se não tiver certeza absoluta do número exato do artigo, cite apenas o nome da lei ou o princípio jurídico sem inventar numeração.`;
+        }
+            const targetContext = (appState.targetExam || appState.targetBoard)
+                ? `CONTEXTO (ALVO ATIVO): Concurso "${appState.targetExam || 'Em definição'}" | Banca "${appState.targetBoard || 'Geral'}".`
+                : 'CONTEXTO: Estudo contínuo de base (pré-edital).';
+            return `Você é um tutor especialista em concursos públicos, rigoroso com a norma culta, a lei seca e a lógica das bancas.
+${personaNotes[appState.mentorPersona] || personaNotes.base}
+${targetContext}
+REGRAS CRÍTICAS:
+1. Abra <raciocinio> no início da correção para analisar as alternativas de forma independente antes do veredito e feche </raciocinio>.
+2. Eleja obrigatoriamente UMA única alternativa como correta (✅).
 3. Cite a tentativa e o nível de confiança do aluno no Diagnóstico sem alterar o gabarito.`;
         }
 
@@ -1025,7 +1037,7 @@ ${appState.currentRawAnalysis}`;
             const loaderId = 'chat-loader-' + Date.now();
             container.insertAdjacentHTML('beforeend', `<div id="${loaderId}" class="text-xs text-slate-400 italic pl-2">Professor respondendo...</div>`);
             try {
-                const reply = await callAIWithRetry(`Responda à dúvida do aluno sobre o conteúdo:\n${appState.currentRawAnalysis}\n\nDúvida: ${question}`);
+                const reply = await callAIWithRetry(`Questão / Material Original:\n${appState.lastQuestionPrompt || appState.currentQuestionSummary}\n\nAnálise Anterior:\n${appState.currentRawAnalysis}\n\nDúvida do Aluno: ${question}`, null, null, buildSystemRules());
                 document.getElementById(loaderId)?.remove();
                 container.insertAdjacentHTML('beforeend', `<div class="bg-slate-100 border border-slate-200 text-slate-800 text-xs p-3.5 rounded-xl rounded-bl-none mr-4 prose-study">${marked.parse(reply)}</div>`);
                 appState.deepDiveAssets.push({ type: 'chat', title: `Dúvida: ${question}`, content: reply });
