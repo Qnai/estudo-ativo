@@ -21,6 +21,7 @@
         body.dark-mode .peer:checked + div.peer-checked\:bg-rose-600 { background-color: #e11d48 !important; border-color: #f43f5e !important; color: #ffffff !important; }
         body.dark-mode #mode-btn-question.bg-white, body.dark-mode #mode-btn-lesson.bg-white { background-color: #4f46e5 !important; color: #ffffff !important; }
         body.dark-mode #persona-base.bg-indigo-50, body.dark-mode #persona-reverso.bg-indigo-50, body.dark-mode #persona-leiseca.bg-indigo-50 { background-color: #4f46e5 !important; border-color: #6366f1 !important; color: #ffffff !important; }
+        body.dark-mode #btn-second-opinion { background-color: rgba(91, 33, 182, 0.25) !important; border-color: rgba(139, 92, 246, 0.4) !important; color: #ddd6fe !important; }
         body.dark-mode .bg-slate-50, body.dark-mode .bg-slate-50\/70, body.dark-mode .bg-slate-50\/80 { background-color: #162033 !important; border-color: #1e293b !important; }
         body.dark-mode .bg-slate-100 { background-color: #1e293b !important; }
         body.dark-mode .text-slate-900, body.dark-mode .text-slate-800 { color: #f1f5f9 !important; }
@@ -179,6 +180,10 @@
                         <button type="button" onclick="generateStudyAsset('flashcards')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 text-slate-700 transition"><i data-lucide="copy" class="w-4 h-4 mb-1 text-emerald-600"></i><span class="text-[11px] font-semibold">Flashcards</span></button>
                         <button type="button" onclick="generateStudyAsset('simulado')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 text-slate-700 transition"><i data-lucide="help-circle" class="w-4 h-4 mb-1 text-amber-600"></i><span class="text-[11px] font-semibold">+ Questões</span></button>
                     </div>
+                    <button type="button" id="btn-second-opinion" onclick="compareWithOtherAI()" class="w-full py-2.5 px-3 rounded-xl border border-violet-200 bg-violet-50/70 hover:bg-violet-100 text-violet-900 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                        <i data-lucide="scale" class="w-4 h-4 text-violet-600"></i>
+                        <span id="btn-second-opinion-label">⚖️ Segunda Opinião (Auditar com a Outra IA)</span>
+                    </button>
                     <div class="pt-1 space-y-2">
                         <textarea id="followup-input" rows="3" oninput="autoResizeFollowup(this)" onkeydown="if((event.ctrlKey || event.metaKey) && event.key==='Enter') askFollowup()" placeholder="Ficou com dúvida? Escreva sua pergunta detalhada ao professor aqui..." class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm leading-relaxed focus:ring-2 focus:ring-indigo-500 outline-none transition resize-y min-h-[88px]"></textarea>
                         <div class="flex items-center justify-between">
@@ -371,6 +376,8 @@
             currentUserAttempt: '',
             currentConfidenceLevel: '',
             currentNoteColor: 'white',
+            lastQuestionPrompt: '',
+            lastProviderUsed: oldProvider,
             deepDiveAssets: [],
             notebook: safeJsonParse(localStorage.getItem('estudo_notebook_v1'), []),
             colorFilter: 'all',
@@ -680,6 +687,7 @@
             document.getElementById('result-workspace')?.classList.add('hidden');
             document.getElementById('btn-clear-input')?.classList.add('hidden');
             appState.currentQuestionId = null;
+            appState.lastQuestionPrompt = '';
         }
 
         function buildSystemRules() {
@@ -733,7 +741,13 @@ REGRAS CRÍTICAS:
                 appState.currentQuestionSummary = summary || extraText.slice(0, 140) || 'Estudo';
                 appState.currentUserAttempt = userAttempt;
                 appState.currentConfidenceLevel = userAttempt ? confidenceLevel : '';
+                appState.lastQuestionPrompt = extraText || summary || 'Questão/Material enviado';
+                appState.lastProviderUsed = appState.keys[appState.provider] ? appState.provider : (appState.keys.groq ? 'groq' : 'gemini');
                 appState.deepDiveAssets = [];
+
+                const otherName = appState.lastProviderUsed === 'groq' ? 'Google Gemini' : 'Groq';
+                const auditLbl = document.getElementById('btn-second-opinion-label');
+                if (auditLbl) auditLbl.textContent = `⚖️ Segunda Opinião (Auditar com ${otherName})`;
 
                 if (badgeEl) badgeEl.textContent = subject;
                 if (document.getElementById('subject-edit-input')) document.getElementById('subject-edit-input').value = subject;
@@ -747,6 +761,69 @@ REGRAS CRÍTICAS:
                 loading?.classList.add('hidden');
                 showToast(error.message || 'Erro na análise.', 'error');
             } finally { if (btn) btn.disabled = false; }
+        }
+
+        async function compareWithOtherAI() {
+            if (!appState.currentRawAnalysis) return;
+            const firstProvider = appState.lastProviderUsed || appState.provider;
+            const secondProvider = firstProvider === 'groq' ? 'gemini' : 'groq';
+            const firstName = firstProvider === 'groq' ? 'Groq' : 'Google Gemini';
+            const secondName = secondProvider === 'groq' ? 'Groq' : 'Google Gemini';
+
+            if (!appState.keys[secondProvider]) {
+                showToast(`Salve também sua chave do ${secondName} nos Ajustes para comparar.`, 'warning');
+                switchTab('settings');
+                return;
+            }
+
+            const container = document.getElementById('deep-dive-container');
+            const loaderId = 'audit-loader-' + Date.now();
+            container.insertAdjacentHTML('beforeend', `<div id="${loaderId}" class="p-4 rounded-xl border border-violet-200 bg-violet-50/50 flex items-center gap-3"><div class="w-4 h-4 border-2 border-violet-600 border-t-transparent rounded-full animate-spin"></div><span class="text-xs font-semibold text-violet-950">Consultando ${secondName} para auditoria independente...</span></div>`);
+
+            const sourceContent = appState.lastQuestionPrompt || appState.currentQuestionSummary;
+            const auditPrompt = `Você é AUDITOR INDEPENDENTE DE CONCURSOS PÚBLICOS. Uma primeira IA (${firstName}) analisou o conteúdo abaixo. Resolva de forma totalmente independente e compare seu veredito com o dela.
+
+<raciocinio>
+Analise o enunciado e as alternativas de forma fria e independente.
+</raciocinio>
+
+### ⚖️ Auditoria Cruzada (${secondName} vs. ${firstName})
+- **Veredito:** [Escreva **🤝 CONSENSO** se chegou na mesma alternativa/conclusão, ou **🚨 DIVERGÊNCIA DETECTADA** se encontrou outra resposta]
+- **Gabarito do Auditor (${secondName}):** [Letra / Certo ou Errado]
+- **Análise Comparativa:** [Explique por que concordam OU onde exatamente a primeira IA errou]
+
+---
+CONTEÚDO ORIGINAL:
+${sourceContent}
+
+---
+RESPOSTA DA PRIMEIRA IA (${firstName}):
+${appState.currentRawAnalysis}`;
+
+            try {
+                const rawAudit = await callSingleProvider(secondProvider, auditPrompt, appState.currentFile, null, buildSystemRules());
+                const { cleanMarkdown } = extractSubjectAndCleanText(rawAudit);
+                document.getElementById(loaderId)?.remove();
+
+                const isDivergent = cleanMarkdown.toUpperCase().includes('DIVERGÊNCIA');
+                const borderTheme = isDivergent ? 'border-rose-300 bg-rose-50/50' : 'border-violet-200 bg-violet-50/40';
+
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="p-4 rounded-xl border-2 ${borderTheme} space-y-2 animate-fade-in">
+                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                            <span class="text-xs font-extrabold text-violet-950">⚖️ Segunda Opinião • ${secondName}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isDivergent ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">${isDivergent ? 'Divergência' : 'Consenso'}</span>
+                        </div>
+                        <div class="prose-study text-xs">${marked.parse(cleanMarkdown)}</div>
+                    </div>
+                `);
+
+                appState.deepDiveAssets.push({ type: 'audit', title: `Auditoria (${secondName})`, content: cleanMarkdown });
+                await autoSaveToNotebook();
+            } catch (err) {
+                document.getElementById(loaderId)?.remove();
+                showToast(`Erro ao consultar ${secondName}: ${err.message}`, 'error');
+            }
         }
 
         function renderVisualMarkdown(md, el) {
@@ -983,7 +1060,7 @@ REGRAS CRÍTICAS:
         }
         function openQuestionFromNotebook(id) {
             const item = appState.notebook.find(i => i.id === id); if (!item) return;
-            appState.currentQuestionId = item.id; appState.currentRawAnalysis = item.analysis; appState.currentDetectedSubject = item.subject; appState.currentQuestionSummary = item.summary; appState.deepDiveAssets = item.assets || [];
+            appState.currentQuestionId = item.id; appState.currentRawAnalysis = item.analysis; appState.currentDetectedSubject = item.subject; appState.currentQuestionSummary = item.summary; appState.lastQuestionPrompt = item.summary; appState.deepDiveAssets = item.assets || [];
             document.getElementById('detected-subject-badge').textContent = item.subject;
             document.getElementById('subject-edit-input').value = item.subject;
             renderVisualMarkdown(item.analysis, document.getElementById('ai-response-content'));
