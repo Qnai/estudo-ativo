@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Estudo Ativo">
-    <title>Estudo Ativo - Caderno Inteligente na Nuvem</title>
+    <title>Estudo Ativo - Base & Preparação</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,8 +24,70 @@
             color: #0f172a;
             -webkit-tap-highlight-color: transparent;
             padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
+        /* MODO ESCURO (DARK MODE) */
+        body.dark-mode {
+            background-color: #090d16;
+            color: #e2e8f0;
+        }
+        body.dark-mode header,
+        body.dark-mode nav.bottom-nav {
+            background-color: rgba(15, 23, 42, 0.92);
+            border-color: #1e293b;
+        }
+        body.dark-mode .bg-white {
+            background-color: #0f172a !important;
+            border-color: #1e293b !important;
+            color: #e2e8f0;
+        }
+        body.dark-mode .bg-slate-50,
+        body.dark-mode .bg-slate-50\/70,
+        body.dark-mode .bg-slate-50\/80 {
+            background-color: #162033 !important;
+            border-color: #1e293b !important;
+        }
+        body.dark-mode .bg-slate-100 {
+            background-color: #1e293b !important;
+        }
+        body.dark-mode .text-slate-900,
+        body.dark-mode .text-slate-800 {
+            color: #f1f5f9 !important;
+        }
+        body.dark-mode .text-slate-700,
+        body.dark-mode .text-slate-600 {
+            color: #cbd5e1 !important;
+        }
+        body.dark-mode .text-slate-500,
+        body.dark-mode .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode input,
+        body.dark-mode textarea,
+        body.dark-mode select {
+            background-color: #0b1120 !important;
+            border-color: #334155 !important;
+            color: #f8fafc !important;
+        }
+        body.dark-mode .border-slate-200,
+        body.dark-mode .border-slate-200\/80,
+        body.dark-mode .border-slate-200\/90,
+        body.dark-mode .border-slate-300 {
+            border-color: #1e293b !important;
+        }
+        body.dark-mode .bg-indigo-50\/60,
+        body.dark-mode .bg-indigo-50\/50,
+        body.dark-mode .bg-indigo-50\/40 {
+            background-color: rgba(49, 46, 129, 0.25) !important;
+            border-color: rgba(99, 102, 241, 0.35) !important;
+        }
+        body.dark-mode .text-indigo-950,
+        body.dark-mode .text-indigo-900 {
+            color: #c7d2fe !important;
+        }
+
+        /* ESTILOS DE CONTEÚDO DA IA */
         .prose-study {
             display: flex;
             flex-direction: column;
@@ -50,11 +112,19 @@
             border-radius: 0.65rem;
             border-left: 4px solid #4f46e5;
         }
+        body.dark-mode .prose-study h3 {
+            background: rgba(79, 70, 229, 0.22);
+            color: #a5b4fc;
+            border-left-color: #6366f1;
+        }
         .prose-study p {
             margin-bottom: 0.25rem;
             line-height: 1.58;
             color: #334155;
             font-size: 0.93rem;
+        }
+        body.dark-mode .prose-study p {
+            color: #cbd5e1;
         }
         .prose-study ul, .prose-study ol {
             display: flex;
@@ -73,11 +143,21 @@
             color: #334155;
             font-size: 0.91rem;
         }
+        body.dark-mode .prose-study li {
+            background: #162033;
+            border-color: #1e293b;
+            color: #e2e8f0;
+        }
         .prose-study li.opt-correct {
             background: #f0fdf4;
             border-color: #86efac;
             border-left: 4px solid #16a34a;
             color: #14532d;
+        }
+        body.dark-mode .prose-study li.opt-correct {
+            background: rgba(20, 83, 45, 0.35);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #bbf7d0;
         }
         .prose-study li.opt-wrong {
             background: #fef2f2;
@@ -85,9 +165,17 @@
             border-left: 4px solid #ef4444;
             color: #7f1d1d;
         }
+        body.dark-mode .prose-study li.opt-wrong {
+            background: rgba(127, 29, 29, 0.35);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #fecaca;
+        }
         .prose-study strong {
             color: #0f172a;
             font-weight: 700;
+        }
+        body.dark-mode .prose-study strong {
+            color: #ffffff;
         }
         .prose-study blockquote {
             border-left: 4px solid #f59e0b;
@@ -99,6 +187,10 @@
             font-size: 0.9rem;
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
+        body.dark-mode .prose-study blockquote {
+            background: rgba(120, 53, 15, 0.3);
+            color: #fde68a;
+        }
         .prose-study table {
             width: 100%;
             border-collapse: separate;
@@ -108,6 +200,9 @@
             border: 1px solid #cbd5e1;
             border-radius: 0.75rem;
             overflow: hidden;
+        }
+        body.dark-mode .prose-study table {
+            border-color: #334155;
         }
         .prose-study th {
             background-color: #1e293b;
@@ -122,8 +217,16 @@
             background-color: #ffffff;
             color: #334155;
         }
+        body.dark-mode .prose-study td {
+            background-color: #0f172a;
+            border-top-color: #1e293b;
+            color: #cbd5e1;
+        }
         .prose-study tr:nth-child(even) td {
             background-color: #f8fafc;
+        }
+        body.dark-mode .prose-study tr:nth-child(even) td {
+            background-color: #162033;
         }
         .prose-study code {
             background-color: #e0e7ff;
@@ -132,6 +235,10 @@
             border-radius: 0.35rem;
             font-size: 0.84em;
             font-weight: 600;
+        }
+        body.dark-mode .prose-study code {
+            background-color: rgba(99, 102, 241, 0.25);
+            color: #c7d2fe;
         }
         .prose-study pre {
             background-color: #0f172a;
@@ -195,22 +302,28 @@
     <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 py-3">
         <div class="max-w-3xl mx-auto flex items-center justify-between gap-2">
             <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shrink-0">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-sm shrink-0">
                     <i data-lucide="brain-circuit" class="w-5 h-5"></i>
                 </div>
                 <div class="truncate">
                     <h1 class="font-bold text-slate-900 text-base leading-tight truncate">Estudo Ativo</h1>
-                    <p class="text-[11px] text-slate-500 font-medium truncate">Nuvem + Aula & Questões</p>
+                    <button type="button" onclick="switchTab('settings')" title="Toque para definir um concurso-alvo ou banca" id="header-target-subtitle" class="text-[11px] text-indigo-600 font-semibold truncate flex items-center gap-1 hover:underline text-left">
+                        <span>Base Contínua • Pré-Edital</span>
+                    </button>
                 </div>
             </div>
             
             <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" id="theme-toggle-btn" onclick="toggleDarkMode()" title="Alternar Tema Claro / Escuro" class="p-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 active:scale-95 transition">
+                    <i data-lucide="moon" id="theme-icon" class="w-3.5 h-3.5"></i>
+                </button>
+
                 <button type="button" id="cloud-status-badge" onclick="syncFromCloud(true)" title="Sincronizar com a Nuvem" class="text-[11px] font-bold px-2 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1 active:scale-95 transition">
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span> Local
                 </button>
 
                 <button type="button" id="api-status-badge" onclick="quickToggleProvider()" title="Toque para alternar entre Groq e Gemini" class="text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 active:scale-95 transition">
-                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Configurar API
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> API
                 </button>
             </div>
         </div>
@@ -236,7 +349,26 @@
                     </button>
                 </div>
 
-                <div class="flex items-center justify-between">
+                <!-- Seletor de Personalidade / Estilo do Mentor -->
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Perfil do Mentor</span>
+                        <span id="mentor-persona-desc" class="text-[10px] text-indigo-600 font-medium">Didático e construtivo</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button type="button" id="persona-base" onclick="setMentorPersona('base')" class="py-1.5 px-2 rounded-lg border border-indigo-600 bg-indigo-50 text-indigo-800 font-bold text-[11px] transition">
+                            🎓 Formação Base
+                        </button>
+                        <button type="button" id="persona-reverso" onclick="setMentorPersona('reverso')" class="py-1.5 px-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-[11px] transition">
+                            ⚡ Estudo Reverso
+                        </button>
+                        <button type="button" id="persona-leiseca" onclick="setMentorPersona('leiseca')" class="py-1.5 px-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-[11px] transition">
+                            📖 Lei Seca & STF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-1 border-t border-slate-100">
                     <h2 id="step1-title" class="font-semibold text-slate-800 text-sm flex items-center gap-1.5">
                         <i data-lucide="file-text" class="w-4 h-4 text-indigo-600"></i>
                         <span>1. Inserir Questão ou Material</span>
@@ -469,6 +601,40 @@
         <!-- ========================================== -->
         <section id="tab-settings" class="hidden space-y-4 animate-fade-in">
             
+            <!-- NOVO BLOCO: FOCO / ALVO DA PREPARAÇÃO (PRÉ-EDITAL vs CONCURSO ALVO) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-indigo-200/80 p-4 space-y-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="compass" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-900 text-sm">Momento & Alvo da Preparação</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Deixe em branco para <strong>Base Contínua (Pré-Edital)</strong>. Quando sair um edital ou previsão concreta, preencha abaixo para direcionar a IA.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Concurso / Cargo Alvo (Opcional)</label>
+                            <input type="text" id="target-exam-input" placeholder="Ex: Pré-Edital (Base Geral)" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Banca Examinadora (Opcional)</label>
+                            <input type="text" id="target-board-input" placeholder="Ex: Sem banca definida / Geral" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="saveStudyTarget()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition">
+                            Aplicar Foco de Estudo
+                        </button>
+                        <button type="button" onclick="clearStudyTarget()" class="px-3.5 py-2.5 rounded-xl border border-slate-300 text-slate-600 text-xs font-semibold hover:bg-slate-100 transition">
+                            Voltar ao Pré-Edital
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-white rounded-2xl shadow-sm border border-indigo-200/80 p-4 space-y-3.5">
                 <div class="flex items-start gap-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -689,6 +855,10 @@
 
         let appState = {
             studyMode: 'question', // 'question' | 'lesson'
+            mentorPersona: localStorage.getItem('estudo_mentor_persona') || 'base',
+            targetExam: localStorage.getItem('estudo_target_exam') || '',
+            targetBoard: localStorage.getItem('estudo_target_board') || '',
+            darkMode: localStorage.getItem('estudo_dark_mode') === 'true',
             provider: oldProvider,
             keys: {
                 groq: savedGroqKey,
@@ -718,6 +888,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+            applyDarkMode(appState.darkMode);
             checkInitialPinLock();
 
             const elGroqKey = document.getElementById('api-key-groq');
@@ -727,6 +898,8 @@
             const elFallback = document.getElementById('auto-fallback-check');
             const elSupaUrl = document.getElementById('supabase-url-input');
             const elSupaKey = document.getElementById('supabase-key-input');
+            const elTargetExam = document.getElementById('target-exam-input');
+            const elTargetBoard = document.getElementById('target-board-input');
 
             if (elGroqKey) elGroqKey.value = appState.keys.groq;
             if (elGeminiKey) elGeminiKey.value = appState.keys.gemini;
@@ -735,7 +908,11 @@
             if (elFallback) elFallback.checked = appState.autoFallback;
             if (elSupaUrl) elSupaUrl.value = appState.supabaseUrl;
             if (elSupaKey) elSupaKey.value = appState.supabaseKey;
+            if (elTargetExam) elTargetExam.value = appState.targetExam;
+            if (elTargetBoard) elTargetBoard.value = appState.targetBoard;
 
+            updateTargetHeaderDisplay();
+            setMentorPersona(appState.mentorPersona, false);
             selectProvider(appState.provider, false);
             updateApiStatusBadge();
             updateNotebookStats();
@@ -745,6 +922,83 @@
                 syncFromCloud(false);
             }
         });
+
+        // ==========================================
+        // TEMA ESCURO & IDENTIDADE / ALVO DE ESTUDO
+        // ==========================================
+        function applyDarkMode(isDark) {
+            document.body.classList.toggle('dark-mode', isDark);
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                try { if (window.lucide) lucide.createIcons(); } catch (e) {}
+            }
+        }
+
+        function toggleDarkMode() {
+            appState.darkMode = !appState.darkMode;
+            localStorage.setItem('estudo_dark_mode', String(appState.darkMode));
+            applyDarkMode(appState.darkMode);
+        }
+
+        function updateTargetHeaderDisplay() {
+            const sub = document.getElementById('header-target-subtitle');
+            if (!sub) return;
+            if (appState.targetExam && appState.targetBoard) {
+                sub.innerHTML = `<span>🎯 ${escapeHTML(appState.targetExam)} • ${escapeHTML(appState.targetBoard)}</span>`;
+            } else if (appState.targetExam) {
+                sub.innerHTML = `<span>🎯 Foco: ${escapeHTML(appState.targetExam)}</span>`;
+            } else if (appState.targetBoard) {
+                sub.innerHTML = `<span>🎯 Banca: ${escapeHTML(appState.targetBoard)}</span>`;
+            } else {
+                sub.innerHTML = `<span>Base Contínua • Pré-Edital</span>`;
+            }
+        }
+
+        function saveStudyTarget() {
+            appState.targetExam = (document.getElementById('target-exam-input')?.value || '').trim();
+            appState.targetBoard = (document.getElementById('target-board-input')?.value || '').trim();
+            localStorage.setItem('estudo_target_exam', appState.targetExam);
+            localStorage.setItem('estudo_target_board', appState.targetBoard);
+            updateTargetHeaderDisplay();
+            showToast(appState.targetExam || appState.targetBoard ? 'Foco de preparação atualizado!' : 'Modo Pré-Edital (Base Geral) ativo!', 'success');
+        }
+
+        function clearStudyTarget() {
+            appState.targetExam = '';
+            appState.targetBoard = '';
+            localStorage.removeItem('estudo_target_exam');
+            localStorage.removeItem('estudo_target_board');
+            const elE = document.getElementById('target-exam-input');
+            const elB = document.getElementById('target-board-input');
+            if (elE) elE.value = '';
+            if (elB) elB.value = '';
+            updateTargetHeaderDisplay();
+            showToast('Voltou para Base Contínua (Pré-Edital).', 'info');
+        }
+
+        function setMentorPersona(persona, persist = true) {
+            appState.mentorPersona = persona;
+            if (persist) localStorage.setItem('estudo_mentor_persona', persona);
+
+            const descriptions = {
+                base: 'Didático e construtivo (pré-edital)',
+                reverso: 'Objetivo: regra, pegadinha e comparação',
+                leiseca: 'Foco em artigos exatos e jurisprudência'
+            };
+            const descEl = document.getElementById('mentor-persona-desc');
+            if (descEl) descEl.textContent = descriptions[persona] || descriptions.base;
+
+            ['base', 'reverso', 'leiseca'].forEach(p => {
+                const btn = document.getElementById(`persona-${p}`);
+                if (!btn) return;
+                if (p === persona) {
+                    btn.className = 'py-1.5 px-2 rounded-lg border border-indigo-600 bg-indigo-50 text-indigo-800 font-bold text-[11px] transition';
+                } else {
+                    btn.className = 'py-1.5 px-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-[11px] transition';
+                }
+            });
+        }
 
         // ==========================================
         // ALTERNÂNCIA DE MODO (QUESTÃO vs AULA)
@@ -898,13 +1152,13 @@
             if (!badge) return;
             if (status === 'connected') {
                 badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 active:scale-95 transition';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Nuvem OK';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Nuvem';
             } else if (status === 'syncing') {
                 badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1';
                 badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span> Sinc...';
             } else if (status === 'error') {
                 badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1 active:scale-95 transition';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Erro Nuvem';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-500"></span> Erro';
             } else {
                 badge.className = 'text-[11px] font-bold px-2 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1 active:scale-95 transition';
                 badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-slate-400"></span> Local';
@@ -1238,7 +1492,7 @@
                 badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${label}${hasBoth ? ' ⇄' : ''}`;
             } else {
                 badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-pointer';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> Configurar API';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> API';
             }
         }
 
@@ -1351,9 +1605,23 @@
         }
 
         // ==========================================
-        // REGRAS DE BLINDAGEM CONTRA ALUCINAÇÃO E VIÉS
+        // REGRAS DE BLINDAGEM + PERFIL DO MENTOR
         // ==========================================
-        const ANTI_HALLUCINATION_SYSTEM_RULES = `Você é um tutor especialista em concursos públicos, rigoroso com a norma culta, a lei seca e a lógica das bancas examinadoras.
+        function buildSystemRules() {
+            const personaNotes = {
+                base: 'ESTILO DO MENTOR: Formação de Base (Pré-Edital). Seja didático, claro e acolhedor, construindo os fundamentos da matéria sem pressa para consolidar o aprendizado de longo prazo.',
+                reverso: 'ESTILO DO MENTOR: Estudo Reverso (Direto ao Ponto). Vá direto na regra, na exceção que derruba o candidato e na comparação objetiva, sem rodeios.',
+                leiseca: 'ESTILO DO MENTOR: Lei Seca & Jurisprudência. Sempre que aplicável, cite expressamente o artigo da lei/Constituição e o entendimento consolidado dos tribunais superiores (STF/STJ).'
+            };
+
+            let targetContext = 'CONTEXTO DA PREPARAÇÃO: Estudo contínuo de base (pré-edital, sem concurso específico definido ainda).';
+            if (appState.targetExam || appState.targetBoard) {
+                targetContext = `CONTEXTO DA PREPARAÇÃO (ALVO ATIVO): Concurso "${appState.targetExam || 'Em definição'}" | Banca "${appState.targetBoard || 'Geral'}". Adapte a análise das pegadinhas e dos simulados ao perfil cobrado por essa banca/concurso.`;
+            }
+
+            return `Você é um tutor especialista em concursos públicos, rigoroso com a norma culta, a lei seca e a lógica das bancas examinadoras.
+${personaNotes[appState.mentorPersona] || personaNotes.base}
+${targetContext}
 
 REGRAS CRÍTICAS E OBRIGATÓRIAS (SIGA À RISCA):
 1. RACIOCÍNIO INDEPENDENTE ANTES DO VEREDITO: Sempre que for corrigir uma questão, abra OBRIGATORIAMENTE uma tag <raciocinio> no início da resposta. Dentro de <raciocinio>, analise todas as alternativas fornecidas de forma fria e técnica para descobrir o gabarito oficial SEM se deixar influenciar pela tentativa do aluno. Feche </raciocinio> antes de escrever o diagnóstico final.
@@ -1362,6 +1630,8 @@ REGRAS CRÍTICAS E OBRIGATÓRIAS (SIGA À RISCA):
 4. LEITURA OBRIGATÓRIA DA TENTATIVA DO ALUNO NO DIAGNÓSTICO: Quando o prompt informar a "TENTATIVA DO ALUNO" e o "NÍVEL DE CONFIANÇA", você DEVE OBRIGATORIAMENTE citar a resposta que ele marcou e o nível de confiança dele no bloco "Diagnóstico da Sua Tentativa". Nunca diga que ele não informou a resposta quando ela estiver presente no prompt. O nível de confiança ("Impreciso", "Chute" ou "Convicto") nunca altera o gabarito; serve apenas para personalizar o conselho pedagógico.
 5. VISÃO DE PRINT (QCONCURSOS / PLATAFORMAS): Se a imagem enviada já exibir uma alternativa destacada em verde ou com ícone de acerto/gabarito oficial, acate essa alternativa como o gabarito oficial definitivo da banca.
 6. EXCEÇÕES GRAMATICAIS CLÁSSICAS: Na comparação de DUAS QUALIDADES de um MESMO SER, usa-se obrigatoriamente a forma analítica ("mais bom", "mais mau", "mais grande", "mais pequeno") e NUNCA "mais bem/mais mal" (que só se aplicam antes de particípios).`;
+        }
+
         // ==========================================
         // ANÁLISE PRINCIPAL (MODO QUESTÃO OU MODO AULA PROFESSOR)
         // ==========================================
@@ -1425,7 +1695,7 @@ RESUMO_ENUNCIADO: Aula: [Título objetivo do assunto estudado]
 (Encerre no papel de professor perguntando de forma amigável se o aluno compreendeu os pontos principais, destacando qual distinção merece mais atenção e convidando-o a tirar dúvidas abaixo antes de partir para as questões).
 
 ${extraText ? `\nPedido / Tema do Aluno:\n${extraText}` : ''}`;
-           } else {
+            } else {
                 const attemptInstruction = userAttempt
                     ? `\n### 🧑‍🎓 Diagnóstico da Sua Tentativa\n(Compare o gabarito oficial que você concluiu em <raciocinio> com a resposta do aluno: "${userAttempt}" | Confiança: "${confidenceLevel}". Se a resposta do aluno corresponder ao gabarito oficial, comece OBRIGATORIAMENTE com **✅ VOCÊ ACERTOU!** — nunca escreva "você errou" se a letra coincidir. Se for diferente do gabarito, comece com **❌ VOCÊ ERROU!**. Em seguida, dê o feedback pedagógico considerando o nível "${confidenceLevel}" sem alterar o veredito).\n`
                     : '';
@@ -1475,7 +1745,7 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}${u
                         if (badgeEl && subject !== 'Geral') badgeEl.textContent = subject;
                         renderVisualMarkdown(cleanMarkdown, contentEl);
                     }
-                }, ANTI_HALLUCINATION_SYSTEM_RULES);
+                }, buildSystemRules());
 
                 const { subject, summary, cleanMarkdown } = extractSubjectAndCleanText(rawResponse);
 
@@ -1526,7 +1796,6 @@ ${extraText ? `\nConteúdo/Enunciado enviado pelo aluno:\n${extraText}` : ''}${u
         }
 
         function extractSubjectAndCleanText(text) {
-            // Remove o bloco de pensamento oculto <raciocinio>...</raciocinio> (inclusive durante o streaming)
             let withoutThought = String(text || '')
                 .replace(/<raciocinio>[\s\S]*?<\/raciocinio>/gi, '')
                 .replace(/<raciocinio>[\s\S]*$/gi, '')
@@ -1841,7 +2110,8 @@ Responda APENAS um JSON válido (sem blocos de código markdown, sem texto antes
 
 Contexto:\n${appState.currentRawAnalysis}`;
             } else if (type === 'simulado') {
-                prompt = `Com base no mesmo tema e estilo de banca do conteúdo abaixo, crie 3 QUESTÕES INÉDITAS de fixação (estilo Certo/Errado ou Múltipla Escolha) com o gabarito comentado logo abaixo de cada uma.\n\nContexto:\n${appState.currentRawAnalysis}`;
+                const boardHint = appState.targetBoard ? `no estilo da banca ${appState.targetBoard}` : 'em estilo clássico de concurso público (Certo/Errado ou Múltipla Escolha)';
+                prompt = `Com base no mesmo tema do conteúdo abaixo, crie 3 QUESTÕES INÉDITAS de fixação ${boardHint} com o gabarito comentado logo abaixo de cada uma.\n\nContexto:\n${appState.currentRawAnalysis}`;
             }
 
             try {
@@ -2257,7 +2527,9 @@ Contexto:\n${appState.currentRawAnalysis}`;
             const container = document.getElementById('deep-dive-container');
             container.innerHTML = '';
             (item.assets || []).forEach(asset => {
-                if (asset.type === 'flashcards') {
+                if (asset.type === 'mindmap') {
+                    renderMindmapBlock(asset.content, container);
+                } else if (asset.type === 'flashcards') {
                     renderFlashcardsBlock(asset.content, container);
                 } else {
                     container.insertAdjacentHTML('beforeend', `
