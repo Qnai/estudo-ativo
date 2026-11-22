@@ -1120,7 +1120,6 @@ ${appState.currentRawAnalysis}`;
                 if (hitLimit) markProviderRateLimited(primary);
 
                 if (appState.autoFallback && appState.keys[secondary] && !isProviderLimitedRecently(secondary)) {
-                    showToast(
                         const detail = String(err.message || '').split('|')[0].trim().slice(0, 110);
                     showToast(
                         hitLimit
