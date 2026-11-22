@@ -143,7 +143,7 @@
                     </div>
                 </div>
 
-                <div id="attempt-section-box" class="bg-indigo-50/60 border border-indigo-200/80 rounded-xl p-3 space-y-2.5">
+                <div id="attempt-section-box" class="hidden bg-indigo-50/60 border border-indigo-200/80 rounded-xl p-3 space-y-2.5">
                     <div class="flex items-center justify-between">
                         <label for="user-attempt-input" class="text-xs font-bold text-indigo-950 flex items-center gap-1.5"><i data-lucide="target" class="w-3.5 h-3.5 text-indigo-600"></i>2. Sua Tentativa de Resposta (Opcional)</label>
                         <span class="text-[10px] font-medium text-indigo-600">Avalia acerto e confiança</span>
@@ -168,7 +168,7 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2"><i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i><span id="workspace-header-label" class="text-xs font-semibold uppercase tracking-wider text-slate-300">Correção & Esquema</span></div>
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex items-center gap-1.5 flex-wrap justify-end">
                             <span id="response-provider-pill" class="text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full">⚡ Groq</span>
                             <span id="detected-subject-badge" class="text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">Geral</span>
                         </div>
@@ -407,8 +407,10 @@
 
             updateTargetHeaderDisplay();
             setMentorPersona(appState.mentorPersona, false);
+            setStudyMode(appState.studyMode);
             selectProvider(appState.provider, false);
             updateApiStatusBadge();
+            updateAuditButtonState();
             updateNotebookStats();
             populateArchiveSelect();
             if (appState.supabaseUrl && appState.supabaseKey) syncFromCloud(false);
@@ -444,6 +446,12 @@
             updateTargetHeaderDisplay();
             showToast('Voltou para Base Contínua (Pré-Edital).', 'info');
         }
+        function syncAttemptVisibility() {
+            const attemptBox = document.getElementById('attempt-section-box');
+            if (!attemptBox) return;
+            const shouldShow = appState.studyMode === 'question' && appState.mentorPersona !== 'base';
+            attemptBox.classList.toggle('hidden', !shouldShow);
+        }
         function setMentorPersona(persona, persist = true) {
             appState.mentorPersona = persona;
             if (persist) localStorage.setItem('estudo_mentor_persona', persona);
@@ -455,15 +463,15 @@
                 if (!btn) return;
                 btn.className = p === persona ? 'py-1.5 px-2 rounded-lg border border-indigo-600 bg-indigo-50 text-indigo-800 font-bold text-[11px] transition' : 'py-1.5 px-2 rounded-lg border border-slate-200 bg-white text-slate-600 font-semibold text-[11px] transition';
             });
+            syncAttemptVisibility();
         }
         function setStudyMode(mode) {
             appState.studyMode = mode;
-            const btnQ = document.getElementById('mode-btn-question'), btnL = document.getElementById('mode-btn-lesson'), attemptBox = document.getElementById('attempt-section-box');
+            const btnQ = document.getElementById('mode-btn-question'), btnL = document.getElementById('mode-btn-lesson');
             const promptLabel = document.getElementById('prompt-label'), promptText = document.getElementById('user-prompt-text'), uploadTitle = document.getElementById('upload-title'), btnAnalyzeLabel = document.getElementById('btn-analyze-label');
             if (mode === 'lesson') {
                 btnL.className = 'py-2 px-3 rounded-lg bg-white text-indigo-700 font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition';
                 btnQ.className = 'py-2 px-3 rounded-lg text-slate-600 hover:text-slate-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition';
-                attemptBox?.classList.add('hidden');
                 if (promptLabel) promptLabel.textContent = 'Qual tema você quer estudar ou o que deseja aprender do PDF?';
                 if (promptText) promptText.placeholder = 'Ex: Quero estudar Atos Administrativos: Atributos (PATI)...';
                 if (uploadTitle) uploadTitle.textContent = 'Anexar Apostila, Lei ou PDF (Opcional)';
@@ -471,12 +479,12 @@
             } else {
                 btnQ.className = 'py-2 px-3 rounded-lg bg-white text-indigo-700 font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition';
                 btnL.className = 'py-2 px-3 rounded-lg text-slate-600 hover:text-slate-900 font-semibold text-xs flex items-center justify-center gap-1.5 transition';
-                attemptBox?.classList.remove('hidden');
                 if (promptLabel) promptLabel.textContent = 'Cole o texto completo da questão ou sua dúvida';
                 if (promptText) promptText.placeholder = 'Cole aqui o enunciado e as alternativas...';
                 if (uploadTitle) uploadTitle.textContent = 'Anexar Foto da Questão ou PDF';
                 if (btnAnalyzeLabel) btnAnalyzeLabel.textContent = 'Corrigir e Analisar com IA';
             }
+            syncAttemptVisibility();
         }
         function showToast(msg, type = 'info') {
             const toast = document.getElementById('toast'), toastMsg = document.getElementById('toast-msg');
@@ -485,7 +493,7 @@
             toast.classList.remove('hidden', 'bg-slate-900', 'bg-emerald-700', 'bg-rose-700', 'bg-amber-700');
             toast.classList.add(type === 'success' ? 'bg-emerald-700' : type === 'error' ? 'bg-rose-700' : type === 'warning' ? 'bg-amber-700' : 'bg-slate-900');
             clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 6000);
+            window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 6500);
         }
         function autoResizeTextarea(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(155, el.scrollHeight) + 'px'; if (el.value.trim()) document.getElementById('btn-clear-input')?.classList.remove('hidden'); }
         function autoResizeFollowup(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(88, el.scrollHeight) + 'px'; }
@@ -635,7 +643,7 @@
             }
             document.getElementById('badge-saved-groq')?.classList.toggle('hidden', !appState.keys.groq);
             document.getElementById('badge-saved-gemini')?.classList.toggle('hidden', !appState.keys.gemini);
-            updateApiStatusBadge();
+            updateApiStatusBadge(provider);
         }
         function quickToggleProvider() {
             if (!appState.keys.groq && !appState.keys.gemini) { switchTab('settings'); return; }
@@ -692,10 +700,24 @@
                 lbl.textContent = `⚖️ Segunda Opinião (Configure chave ${secondName} nos Ajustes)`;
             } else if (isProviderLimitedRecently(secondProvider)) {
                 btn.disabled = true;
-                lbl.textContent = `⏳ Segunda Opinião indisponível (${secondName} atingiu limite)`;
+                lbl.textContent = `⏳ Segunda Opinião bloqueada (${secondName} sem limite disponível)`;
             } else {
                 btn.disabled = false;
                 lbl.textContent = `⚖️ Segunda Opinião (Auditar com ${secondName})`;
+            }
+        }
+        function setResponseProviderPill(providerUsed, hadFallback = false, limitedFrom = null) {
+            const pill = document.getElementById('response-provider-pill');
+            if (!pill) return;
+            const name = providerUsed === 'groq' ? 'Groq' : 'Gemini';
+            const icon = providerUsed === 'groq' ? '⚡' : '✨';
+            if (hadFallback && limitedFrom) {
+                const fromName = limitedFrom === 'groq' ? 'Groq' : 'Gemini';
+                pill.textContent = `${icon} ${name} (Após limite no ${fromName})`;
+                pill.className = 'text-[10px] font-bold bg-amber-500/20 text-amber-200 border border-amber-400/40 px-2 py-0.5 rounded-full';
+            } else {
+                pill.textContent = `${icon} Respondido por ${name}`;
+                pill.className = 'text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full';
             }
         }
 
@@ -765,8 +787,9 @@ REGRAS CRÍTICAS:
         async function analyzeQuestion() {
             const extraText = (document.getElementById('user-prompt-text')?.value || '').trim();
             const isLesson = appState.studyMode === 'lesson';
-            const userAttempt = !isLesson ? (document.getElementById('user-attempt-input')?.value || '').trim() : '';
-            const confidenceLevel = !isLesson ? (document.querySelector('input[name="attempt-confidence"]:checked')?.value || 'Convicto') : '';
+            const showAttempt = !isLesson && appState.mentorPersona !== 'base';
+            const userAttempt = showAttempt ? (document.getElementById('user-attempt-input')?.value || '').trim() : '';
+            const confidenceLevel = showAttempt ? (document.querySelector('input[name="attempt-confidence"]:checked')?.value || 'Convicto') : '';
             if (!appState.currentFile && !extraText) { showToast('Insira o texto ou anexe um arquivo.', 'warning'); return; }
 
             const btn = document.getElementById('btn-analyze'), loading = document.getElementById('loading-state'), workspace = document.getElementById('result-workspace'), badgeEl = document.getElementById('detected-subject-badge'), contentEl = document.getElementById('ai-response-content');
@@ -781,7 +804,7 @@ REGRAS CRÍTICAS:
 
             let streamStarted = false, lastRenderTime = 0;
             try {
-                const { text: rawResponse, providerUsed } = await callAIWithRetry(userPrompt, appState.currentFile, (partialText) => {
+                const { text: rawResponse, providerUsed, hadFallback, limitedFrom } = await callAIWithRetry(userPrompt, appState.currentFile, (partialText) => {
                     const { subject, cleanMarkdown } = extractSubjectAndCleanText(partialText);
                     if (!streamStarted && partialText.trim().length > 10) {
                         streamStarted = true;
@@ -808,8 +831,8 @@ REGRAS CRÍTICAS:
                 appState.lastProviderUsed = providerUsed;
                 appState.deepDiveAssets = [];
 
-                const pill = document.getElementById('response-provider-pill');
-                if (pill) pill.textContent = providerUsed === 'groq' ? '⚡ Respondido por Groq' : '✨ Respondido por Gemini';
+                selectProvider(providerUsed, true);
+                setResponseProviderPill(providerUsed, hadFallback, limitedFrom);
                 updateAuditButtonState();
 
                 if (badgeEl) badgeEl.textContent = subject;
@@ -833,17 +856,20 @@ REGRAS CRÍTICAS:
             const firstName = firstProvider === 'groq' ? 'Groq' : 'Google Gemini';
             const secondName = secondProvider === 'groq' ? 'Groq' : 'Google Gemini';
 
-            if (firstProvider === secondProvider) {
-                showToast('A auditoria exige uma segunda IA diferente da que respondeu.', 'warning');
+            if (!firstProvider || firstProvider === secondProvider) {
+                showToast('Não é possível auditar usando a mesma IA que respondeu.', 'warning');
+                updateAuditButtonState();
                 return;
             }
             if (!appState.keys[secondProvider]) {
-                showToast(`Salve também sua chave do ${secondName} nos Ajustes para auditar.`, 'warning');
+                showToast(`Configure a chave do ${secondName} nos Ajustes para auditar com uma segunda IA.`, 'warning');
+                updateAuditButtonState();
                 switchTab('settings');
                 return;
             }
             if (isProviderLimitedRecently(secondProvider)) {
-                showToast(`${secondName} atingiu o limite recentemente. Aguarde antes de auditar.`, 'warning');
+                showToast(`⛔ O ${secondName} está sem limite disponível no momento. Auditoria cancelada (não usamos a mesma IA).`, 'warning');
+                updateAuditButtonState();
                 return;
             }
 
@@ -885,7 +911,7 @@ ${appState.currentRawAnalysis}`;
                 container.insertAdjacentHTML('beforeend', `
                     <div class="p-4 rounded-xl border-2 ${borderTheme} space-y-2 animate-fade-in">
                         <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                            <span class="text-xs font-extrabold text-violet-950">⚖️ Segunda Opinião • ${secondName}</span>
+                            <span class="text-xs font-extrabold text-violet-950">⚖️ Segunda Opinião • Auditado por ${secondName}</span>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isDivergent ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">${isDivergent ? 'Divergência' : 'Consenso'}</span>
                         </div>
                         <div class="prose-study text-xs">${marked.parse(cleanMarkdown)}</div>
@@ -898,9 +924,9 @@ ${appState.currentRawAnalysis}`;
                 document.getElementById(loaderId)?.remove();
                 if (isRateLimitError(err.message)) {
                     markProviderRateLimited(secondProvider);
-                    showToast(`⚠️ ${secondName} atingiu o limite de uso agora. Auditoria cancelada (não usamos a mesma IA).`, 'warning');
+                    showToast(`⛔ Limite atingido no ${secondName}! Auditoria cancelada para não usar a mesma IA.`, 'warning');
                 } else {
-                    showToast(`Erro ao consultar ${secondName}: ${err.message}`, 'error');
+                    showToast(`Erro na auditoria com ${secondName}: ${err.message}`, 'error');
                 }
             } finally {
                 updateAuditButtonState();
@@ -975,6 +1001,7 @@ ${appState.currentRawAnalysis}`;
                 const preferred = appState.models.groq || 'llama-3.3-70b-versatile';
                 const modelsToTry = fileObj ? ['meta-llama/llama-4-scout-17b-16e-instruct'] : Array.from(new Set([preferred, 'llama-3.3-70b-versatile']));
                 const errors = [];
+                let hitRateLimit = false;
                 for (const modelName of modelsToTry) {
                     const userContent = fileObj ? [{ type: 'text', text: promptText }, { type: 'image_url', image_url: { url: `data:${fileObj.mimeType};base64,${fileObj.base64}` } }] : promptText;
                     const messages = systemInstructionText ? [{ role: 'system', content: systemInstructionText }, { role: 'user', content: userContent }] : [{ role: 'user', content: userContent }];
@@ -988,7 +1015,7 @@ ${appState.currentRawAnalysis}`;
                             const errJson = await res.json().catch(() => ({}));
                             const msg = errJson?.error?.message || 'HTTP ' + res.status;
                             errors.push(`${modelName} (${res.status}): ${msg}`);
-                            if (res.status === 429) markProviderRateLimited('groq');
+                            if (res.status === 429 || isRateLimitError(msg)) hitRateLimit = true;
                             continue;
                         }
                         const text = await readOpenAIStream(res, onChunk);
@@ -998,9 +1025,11 @@ ${appState.currentRawAnalysis}`;
                         }
                     } catch (e) {
                         errors.push(`${modelName}: ${e.name === 'AbortError' ? 'Timeout 25s' : e.message}`);
+                        if (isRateLimitError(e.message)) hitRateLimit = true;
                         continue;
                     }
                 }
+                if (hitRateLimit) markProviderRateLimited('groq');
                 throw new Error(errors.join(' | ') || 'Falha na Groq.');
             }
 
@@ -1008,6 +1037,7 @@ ${appState.currentRawAnalysis}`;
             const preferredGemini = (appState.models.gemini && !deprecated.includes(appState.models.gemini)) ? appState.models.gemini : 'gemini-3.8-flash';
             const geminiModels = Array.from(new Set([preferredGemini, 'gemini-3.8-flash', 'gemini-3.5-flash-lite']));
             const errors = [];
+            let hitRateLimit = false;
 
             for (const modelName of geminiModels) {
                 const endpoint = onChunk
@@ -1027,7 +1057,7 @@ ${appState.currentRawAnalysis}`;
                         const errJson = await res.json().catch(() => ({}));
                         const msg = errJson?.error?.message || 'HTTP ' + res.status;
                         errors.push(`${modelName} (${res.status}): ${msg}`);
-                        if (res.status === 429) markProviderRateLimited('gemini');
+                        if (res.status === 429 || isRateLimitError(msg)) hitRateLimit = true;
                         continue;
                     }
                     const text = await readGeminiStream(res, onChunk);
@@ -1038,9 +1068,11 @@ ${appState.currentRawAnalysis}`;
                     errors.push(`${modelName}: resposta vazia`);
                 } catch (e) {
                     errors.push(`${modelName}: ${e.name === 'AbortError' ? 'Timeout 35s' : e.message}`);
+                    if (isRateLimitError(e.message)) hitRateLimit = true;
                     continue;
                 }
             }
+            if (hitRateLimit) markProviderRateLimited('gemini');
             throw new Error(errors.join(' | ') || 'Falha no Gemini.');
         }
 
@@ -1052,45 +1084,49 @@ ${appState.currentRawAnalysis}`;
             const secondaryName = secondary === 'groq' ? 'Groq' : 'Google Gemini';
 
             if (primary === 'groq' && fileObj && fileObj.mimeType === 'application/pdf') {
-                if (appState.keys.gemini) {
+                if (appState.keys.gemini && !isProviderLimitedRecently('gemini')) {
                     showToast('PDF detectado: usando Google Gemini automaticamente.', 'info');
-                    updateApiStatusBadge('gemini');
+                    selectProvider('gemini', true);
                     const text = await callSingleProvider('gemini', promptText, fileObj, onChunk, systemInstructionText);
-                    return { text, providerUsed: 'gemini' };
+                    return { text, providerUsed: 'gemini', hadFallback: true, limitedFrom: null };
                 }
-                throw new Error('Configure sua chave Gemini para ler PDFs.');
+                throw new Error('Configure sua chave Gemini (com limite disponível) para ler PDFs.');
             }
 
             try {
                 const text = await callSingleProvider(primary, promptText, fileObj, onChunk, systemInstructionText);
                 updateApiStatusBadge(primary);
-                return { text, providerUsed: primary };
+                return { text, providerUsed: primary, hadFallback: false, limitedFrom: null };
             } catch (err) {
                 const hitLimit = isRateLimitError(err.message);
                 if (hitLimit) markProviderRateLimited(primary);
 
-                if (appState.autoFallback && appState.keys[secondary]) {
+                if (appState.autoFallback && appState.keys[secondary] && !isProviderLimitedRecently(secondary)) {
                     showToast(
                         hitLimit
-                            ? `⚠️ Limite atingido no ${primaryName}! Alternando automaticamente para ${secondaryName}...`
-                            : `⚠️ Falha no ${primaryName}. Alternando para ${secondaryName}...`,
+                            ? `⚠️ Limite atingido no ${primaryName}! Trocando para ${secondaryName} (a resposta será gerada pelo ${secondaryName}).`
+                            : `⚠️ Falha no ${primaryName}. Trocando para ${secondaryName}.`,
                         'warning'
                     );
                     selectProvider(secondary, true);
                     try {
                         const text = await callSingleProvider(secondary, promptText, fileObj, onChunk, systemInstructionText);
-                        return { text, providerUsed: secondary };
+                        return { text, providerUsed: secondary, hadFallback: true, limitedFrom: hitLimit ? primary : null };
                     } catch (err2) {
                         if (isRateLimitError(err2.message)) {
                             markProviderRateLimited(secondary);
-                            throw new Error(`⛔ Limite diário/cota atingido tanto no ${primaryName} quanto no ${secondaryName}.`);
+                            throw new Error(`⛔ Limite atingido no ${primaryName} e também no ${secondaryName}. Nenhuma IA disponível agora.`);
                         }
                         throw err2;
                     }
                 }
 
                 if (hitLimit) {
-                    throw new Error(`⚠️ Limite atingido no ${primaryName}. ${appState.keys[secondary] ? 'Ative a Alternância Automática ou troque a IA no topo.' : 'Configure a outra chave nos Ajustes ou aguarde.'}`);
+                    const secLimited = appState.keys[secondary] && isProviderLimitedRecently(secondary);
+                    if (secLimited) {
+                        throw new Error(`⛔ Limite atingido tanto no ${primaryName} quanto no ${secondaryName}.`);
+                    }
+                    throw new Error(`⛔ Limite atingido no ${primaryName}! ${appState.keys[secondary] ? 'Ative a Alternância Automática ou clique no badge no topo para trocar de IA.' : 'Configure a outra chave nos Ajustes ou aguarde o limite resetar.'}`);
                 }
                 throw err;
             }
