@@ -383,6 +383,7 @@
             currentNoteColor: 'white',
             lastQuestionPrompt: '',
             lastProviderUsed: oldProvider,
+            lastModelUsed: oldProvider === 'groq' ? savedGroqModel : savedGeminiModel,
             deepDiveAssets: [],
             notebook: safeJsonParse(localStorage.getItem('estudo_notebook_v1'), []),
             colorFilter: 'all',
@@ -667,25 +668,6 @@
             updateAuditButtonState();
             showToast('Chaves salvas!', 'success');
         }
-        function updateApiStatusBadge(forcedProvider = null) {
-            const badge = document.getElementById('api-status-badge');
-            if (!badge) return;
-            const activeProv = forcedProvider || appState.provider;
-            if (appState.keys[activeProv]) {
-                const limited = isProviderLimitedRecently(activeProv);
-                const label = activeProv === 'groq' ? '⚡ Groq' : '✨ Gemini';
-                const swapIcon = (appState.keys.groq && appState.keys.gemini) ? ' ⇄' : '';
-                if (limited) {
-                    badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1 cursor-pointer';
-                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> ${label} (Limite)${swapIcon}`;
-                } else {
-                    badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 cursor-pointer';
-                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${label}${swapIcon}`;
-                }
-            } else {
-                badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-pointer';
-                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> API';
-            }
         function formatShortModelBadge(provider, modelName) {
             const clean = String(modelName || '').split('/').pop() || '';
             if (provider === 'groq') {
@@ -696,6 +678,29 @@
             if (clean.includes('3.8-flash')) return 'Gemini 3.8 Flash';
             if (clean.includes('3.5-flash-lite')) return 'Gemini 3.5 Lite';
             return clean.slice(0, 14) || 'Gemini';
+        }
+        function updateApiStatusBadge(forcedProvider = null, forcedModel = null) {
+            const badge = document.getElementById('api-status-badge');
+            if (!badge) return;
+            const activeProv = forcedProvider || appState.provider;
+            const activeModel = forcedModel || (activeProv === 'groq' ? appState.models.groq : appState.models.gemini);
+            if (appState.keys[activeProv]) {
+                const limited = isProviderLimitedRecently(activeProv);
+                const icon = activeProv === 'groq' ? '⚡' : '✨';
+                const label = activeProv === 'groq' ? 'Groq' : 'Gemini';
+                const shortModel = formatShortModelBadge(activeProv, activeModel);
+                const swapIcon = (appState.keys.groq && appState.keys.gemini) ? ' ⇄' : '';
+                if (limited) {
+                    badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1 cursor-pointer';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> ${icon} ${label} • ${shortModel} (Limite)${swapIcon}`;
+                } else {
+                    badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 cursor-pointer';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${icon} ${label} • ${shortModel}${swapIcon}`;
+                }
+            } else {
+                badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-pointer';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> API';
+            }
         }
         function updateAuditButtonState() {
             const btn = document.getElementById('btn-second-opinion');
@@ -716,23 +721,21 @@
                 lbl.textContent = `⚖️ Segunda Opinião (Auditar com ${secondName})`;
             }
         }
-        function setResponseProviderPill(providerUsed, hadFallback = false, limitedFrom = null) {
+        function setResponseProviderPill(providerUsed, modelUsed, hadFallback = false, limitedFrom = null) {
             const pill = document.getElementById('response-provider-pill');
             if (!pill) return;
             const icon = providerUsed === 'groq' ? '⚡' : '✨';
-const provLabel = providerUsed === 'groq' ? 'Groq' : 'Gemini';
-const shortModel = formatShortModelBadge(providerUsed, modelUsed);
-
-const badge = document.getElementById('api-status-badge');
-if (badge) {
-    badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 cursor-pointer';
-    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${icon} ${provLabel} • ${shortModel}`;
-}
-
-const pill = document.getElementById('response-provider-pill');
-if (pill) {
-    pill.textContent = `${icon} ${provLabel} (${modelUsed})`;
-}
+            const provLabel = providerUsed === 'groq' ? 'Groq' : 'Gemini';
+            const modelTag = modelUsed ? `${provLabel} (${modelUsed})` : provLabel;
+            if (hadFallback && limitedFrom) {
+                const fromName = limitedFrom === 'groq' ? 'Groq' : 'Gemini';
+                pill.textContent = `${icon} ${modelTag} • após limite no ${fromName}`;
+                pill.className = 'text-[10px] font-bold bg-amber-500/20 text-amber-200 border border-amber-400/40 px-2 py-0.5 rounded-full';
+            } else {
+                pill.textContent = `${icon} ${modelTag}`;
+                pill.className = 'text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full';
+            }
+        }
 
         function compressImageDataUrl(dataUrl, maxDim = 1280, quality = 0.82) {
             return new Promise((resolve) => {
@@ -817,7 +820,7 @@ REGRAS CRÍTICAS:
 
             let streamStarted = false, lastRenderTime = 0;
             try {
-                const { text: rawResponse, providerUsed, hadFallback, limitedFrom } = await callAIWithRetry(userPrompt, appState.currentFile, (partialText) => {
+                const { text: rawResponse, providerUsed, modelUsed, hadFallback, limitedFrom } = await callAIWithRetry(userPrompt, appState.currentFile, (partialText) => {
                     const { subject, cleanMarkdown } = extractSubjectAndCleanText(partialText);
                     if (!streamStarted && partialText.trim().length > 10) {
                         streamStarted = true;
@@ -842,10 +845,12 @@ REGRAS CRÍTICAS:
                 appState.currentConfidenceLevel = userAttempt ? confidenceLevel : '';
                 appState.lastQuestionPrompt = extraText || summary || 'Questão/Material enviado';
                 appState.lastProviderUsed = providerUsed;
+                appState.lastModelUsed = modelUsed;
                 appState.deepDiveAssets = [];
 
                 selectProvider(providerUsed, true);
-                setResponseProviderPill(providerUsed, hadFallback, limitedFrom);
+                updateApiStatusBadge(providerUsed, modelUsed);
+                setResponseProviderPill(providerUsed, modelUsed, hadFallback, limitedFrom);
                 updateAuditButtonState();
 
                 if (badgeEl) badgeEl.textContent = subject;
@@ -914,7 +919,7 @@ RESPOSTA DA PRIMEIRA IA (${firstName}):
 ${appState.currentRawAnalysis}`;
 
             try {
-                const rawAudit = await callSingleProvider(secondProvider, auditPrompt, appState.currentFile, null, buildSystemRules());
+                const { text: rawAudit, modelUsed: auditModel } = await callSingleProvider(secondProvider, auditPrompt, appState.currentFile, null, buildSystemRules());
                 const { cleanMarkdown } = extractSubjectAndCleanText(rawAudit);
                 document.getElementById(loaderId)?.remove();
 
@@ -924,7 +929,7 @@ ${appState.currentRawAnalysis}`;
                 container.insertAdjacentHTML('beforeend', `
                     <div class="p-4 rounded-xl border-2 ${borderTheme} space-y-2 animate-fade-in">
                         <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                            <span class="text-xs font-extrabold text-violet-950">⚖️ Segunda Opinião • Auditado por ${secondName}</span>
+                            <span class="text-xs font-extrabold text-violet-950">⚖️ Segunda Opinião • ${secondName} (${escapeHTML(auditModel)})</span>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isDivergent ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">${isDivergent ? 'Divergência' : 'Consenso'}</span>
                         </div>
                         <div class="prose-study text-xs">${marked.parse(cleanMarkdown)}</div>
@@ -1034,7 +1039,7 @@ ${appState.currentRawAnalysis}`;
                         const text = await readOpenAIStream(res, onChunk);
                         if (text) {
                             delete appState.rateLimitedProviders['groq'];
-                            return text;
+                            return { text, modelUsed: modelName };
                         }
                     } catch (e) {
                         errors.push(`${modelName}: ${e.name === 'AbortError' ? 'Timeout 25s' : e.message}`);
@@ -1076,7 +1081,7 @@ ${appState.currentRawAnalysis}`;
                     const text = await readGeminiStream(res, onChunk);
                     if (text) {
                         delete appState.rateLimitedProviders['gemini'];
-                        return text;
+                        return { text, modelUsed: modelName };
                     }
                     errors.push(`${modelName}: resposta vazia`);
                 } catch (e) {
@@ -1100,16 +1105,16 @@ ${appState.currentRawAnalysis}`;
                 if (appState.keys.gemini && !isProviderLimitedRecently('gemini')) {
                     showToast('PDF detectado: usando Google Gemini automaticamente.', 'info');
                     selectProvider('gemini', true);
-                    const text = await callSingleProvider('gemini', promptText, fileObj, onChunk, systemInstructionText);
-                    return { text, providerUsed: 'gemini', hadFallback: true, limitedFrom: null };
+                    const { text, modelUsed } = await callSingleProvider('gemini', promptText, fileObj, onChunk, systemInstructionText);
+                    return { text, providerUsed: 'gemini', modelUsed, hadFallback: true, limitedFrom: null };
                 }
                 throw new Error('Configure sua chave Gemini (com limite disponível) para ler PDFs.');
             }
 
             try {
-                const text = await callSingleProvider(primary, promptText, fileObj, onChunk, systemInstructionText);
-                updateApiStatusBadge(primary);
-                return { text, providerUsed: primary, hadFallback: false, limitedFrom: null };
+                const { text, modelUsed } = await callSingleProvider(primary, promptText, fileObj, onChunk, systemInstructionText);
+                updateApiStatusBadge(primary, modelUsed);
+                return { text, providerUsed: primary, modelUsed, hadFallback: false, limitedFrom: null };
             } catch (err) {
                 const hitLimit = isRateLimitError(err.message);
                 if (hitLimit) markProviderRateLimited(primary);
@@ -1123,8 +1128,9 @@ ${appState.currentRawAnalysis}`;
                     );
                     selectProvider(secondary, true);
                     try {
-                        const text = await callSingleProvider(secondary, promptText, fileObj, onChunk, systemInstructionText);
-                        return { text, providerUsed: secondary, hadFallback: true, limitedFrom: hitLimit ? primary : null };
+                        const { text, modelUsed } = await callSingleProvider(secondary, promptText, fileObj, onChunk, systemInstructionText);
+                        updateApiStatusBadge(secondary, modelUsed);
+                        return { text, providerUsed: secondary, modelUsed, hadFallback: true, limitedFrom: hitLimit ? primary : null };
                     } catch (err2) {
                         if (isRateLimitError(err2.message)) {
                             markProviderRateLimited(secondary);
