@@ -686,6 +686,16 @@
                 badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-pointer';
                 badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> API';
             }
+        function formatShortModelBadge(provider, modelName) {
+            const clean = String(modelName || '').split('/').pop() || '';
+            if (provider === 'groq') {
+                if (clean.includes('70b')) return 'Llama 3.3 70B';
+                if (clean.includes('scout')) return 'Llama 4 Scout';
+                return clean.slice(0, 14) || 'Groq';
+            }
+            if (clean.includes('3.8-flash')) return 'Gemini 3.8 Flash';
+            if (clean.includes('3.5-flash-lite')) return 'Gemini 3.5 Lite';
+            return clean.slice(0, 14) || 'Gemini';
         }
         function updateAuditButtonState() {
             const btn = document.getElementById('btn-second-opinion');
@@ -709,17 +719,20 @@
         function setResponseProviderPill(providerUsed, hadFallback = false, limitedFrom = null) {
             const pill = document.getElementById('response-provider-pill');
             if (!pill) return;
-            const name = providerUsed === 'groq' ? 'Groq' : 'Gemini';
             const icon = providerUsed === 'groq' ? '⚡' : '✨';
-            if (hadFallback && limitedFrom) {
-                const fromName = limitedFrom === 'groq' ? 'Groq' : 'Gemini';
-                pill.textContent = `${icon} ${name} (Após limite no ${fromName})`;
-                pill.className = 'text-[10px] font-bold bg-amber-500/20 text-amber-200 border border-amber-400/40 px-2 py-0.5 rounded-full';
-            } else {
-                pill.textContent = `${icon} Respondido por ${name}`;
-                pill.className = 'text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full';
-            }
-        }
+const provLabel = providerUsed === 'groq' ? 'Groq' : 'Gemini';
+const shortModel = formatShortModelBadge(providerUsed, modelUsed);
+
+const badge = document.getElementById('api-status-badge');
+if (badge) {
+    badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 cursor-pointer';
+    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${icon} ${provLabel} • ${shortModel}`;
+}
+
+const pill = document.getElementById('response-provider-pill');
+if (pill) {
+    pill.textContent = `${icon} ${provLabel} (${modelUsed})`;
+}
 
         function compressImageDataUrl(dataUrl, maxDim = 1280, quality = 0.82) {
             return new Promise((resolve) => {
