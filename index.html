@@ -305,7 +305,11 @@
                     <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
                         <label class="text-xs font-bold text-slate-800 block">⚡ Chave Groq Cloud</label>
                         <div class="relative"><input type="password" id="api-key-groq" placeholder="gsk_..." class="w-full rounded-xl border border-slate-300 bg-white pl-3 pr-10 py-2 text-xs font-mono outline-none"><button type="button" onclick="toggleInputVisibility('api-key-groq')" class="absolute right-2.5 top-2 text-slate-400"><i data-lucide="eye" class="w-4 h-4"></i></button></div>
-                        <select id="model-select-groq" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none"><option value="llama-3.3-70b-versatile" selected>Llama 3.3 70B Versatile (Padrão)</option><option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B</option></select>
+                        <select id="model-select-groq" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none">
+                            <option value="openai/gpt-oss-120b" selected>GPT-OSS 120B (Alta Precisão)</option>
+                            <option value="openai/gpt-oss-20b">GPT-OSS 20B (Rápido)</option>
+                            <option value="meta-llama/llama-4-scout-17b-16e-instruct">Llama 4 Scout 17B</option>
+                        </select>
                     </div>
                     <div class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
                         <label class="text-xs font-bold text-slate-800 block">✨ Chave Google Gemini</label>
@@ -354,8 +358,8 @@
         const oldModel = localStorage.getItem('estudo_gemini_model') || '';
         let savedGroqKey = localStorage.getItem('estudo_key_groq') || (oldProvider === 'groq' && oldKey ? oldKey : '');
         let savedGeminiKey = localStorage.getItem('estudo_key_gemini') || (oldProvider === 'gemini' && oldKey ? oldKey : '');
-        let savedGroqModel = localStorage.getItem('estudo_model_groq') || (oldProvider === 'groq' && oldModel ? oldModel : 'llama-3.3-70b-versatile');
-        if (savedGroqModel === 'openai/gpt-oss-20b') savedGroqModel = 'llama-3.3-70b-versatile';
+        let savedGroqModel = localStorage.getItem('estudo_model_groq') || (oldProvider === 'groq' && oldModel ? oldModel : 'openai/gpt-oss-120b');
+        if (savedGroqModel === 'llama-3.3-70b-versatile') savedGroqModel = 'openai/gpt-oss-120b';
         let savedGeminiModel = localStorage.getItem('estudo_model_gemini') || (oldProvider === 'gemini' && oldModel ? oldModel : 'gemini-3.8-flash');
         if (savedGeminiModel === 'gemini-2.5-flash' || savedGeminiModel === 'gemini-2.5-flash-lite' || savedGeminiModel === 'gemini-2.0-flash') savedGeminiModel = 'gemini-3.8-flash';
 
@@ -671,7 +675,8 @@
         function formatShortModelBadge(provider, modelName) {
             const clean = String(modelName || '').split('/').pop() || '';
             if (provider === 'groq') {
-                if (clean.includes('70b')) return 'Llama 3.3 70B';
+                if (clean.includes('120b')) return 'GPT-OSS 120B';
+                if (clean.includes('20b')) return 'GPT-OSS 20B';
                 if (clean.includes('scout')) return 'Llama 4 Scout';
                 return clean.slice(0, 14) || 'Groq';
             }
@@ -1016,8 +1021,10 @@ ${appState.currentRawAnalysis}`;
 
             if (provider === 'groq') {
                 if (fileObj && fileObj.mimeType === 'application/pdf') throw new Error('GROQ_UNSUPPORTED_PDF');
-                const preferred = appState.models.groq || 'llama-3.3-70b-versatile';
-                const modelsToTry = fileObj ? ['meta-llama/llama-4-scout-17b-16e-instruct'] : Array.from(new Set([preferred, 'llama-3.3-70b-versatile']));
+                const preferred = (appState.models.groq && appState.models.groq !== 'llama-3.3-70b-versatile') ? appState.models.groq : 'openai/gpt-oss-120b';
+                const modelsToTry = fileObj
+                    ? ['meta-llama/llama-4-scout-17b-16e-instruct']
+                    : Array.from(new Set([preferred, 'openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'meta-llama/llama-4-scout-17b-16e-instruct']));
                 const errors = [];
                 let hitRateLimit = false;
                 for (const modelName of modelsToTry) {
