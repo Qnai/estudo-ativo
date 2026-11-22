@@ -1121,9 +1121,11 @@ ${appState.currentRawAnalysis}`;
 
                 if (appState.autoFallback && appState.keys[secondary] && !isProviderLimitedRecently(secondary)) {
                     showToast(
+                        const detail = String(err.message || '').split('|')[0].trim().slice(0, 110);
+                    showToast(
                         hitLimit
-                            ? `⚠️ Limite atingido no ${primaryName}! Trocando para ${secondaryName} (a resposta será gerada pelo ${secondaryName}).`
-                            : `⚠️ Falha no ${primaryName}. Trocando para ${secondaryName}.`,
+                            ? `⚠️ Limite atingido no ${primaryName}! Trocando para ${secondaryName}...`
+                            : `⚠️ Falha no ${primaryName}: ${detail || 'erro de rede'}. Trocando para ${secondaryName}...`,
                         'warning'
                     );
                     selectProvider(secondary, true);
