@@ -166,9 +166,12 @@
 
             <div id="result-workspace" class="hidden space-y-4 animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between">
+                    <div class="bg-slate-900 text-white px-4 py-3 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2"><i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i><span id="workspace-header-label" class="text-xs font-semibold uppercase tracking-wider text-slate-300">Correção & Esquema</span></div>
-                        <span id="detected-subject-badge" class="text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">Geral</span>
+                        <div class="flex items-center gap-1.5">
+                            <span id="response-provider-pill" class="text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 px-2 py-0.5 rounded-full">⚡ Groq</span>
+                            <span id="detected-subject-badge" class="text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">Geral</span>
+                        </div>
                     </div>
                     <div id="ai-response-content" class="p-4 prose-study text-sm"></div>
                 </div>
@@ -180,7 +183,7 @@
                         <button type="button" onclick="generateStudyAsset('flashcards')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 text-slate-700 transition"><i data-lucide="copy" class="w-4 h-4 mb-1 text-emerald-600"></i><span class="text-[11px] font-semibold">Flashcards</span></button>
                         <button type="button" onclick="generateStudyAsset('simulado')" class="flex flex-col items-center justify-center p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-indigo-50 text-slate-700 transition"><i data-lucide="help-circle" class="w-4 h-4 mb-1 text-amber-600"></i><span class="text-[11px] font-semibold">+ Questões</span></button>
                     </div>
-                    <button type="button" id="btn-second-opinion" onclick="compareWithOtherAI()" class="w-full py-2.5 px-3 rounded-xl border border-violet-200 bg-violet-50/70 hover:bg-violet-100 text-violet-900 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-[0.99]">
+                    <button type="button" id="btn-second-opinion" onclick="compareWithOtherAI()" class="w-full py-2.5 px-3 rounded-xl border border-violet-200 bg-violet-50/70 hover:bg-violet-100 text-violet-900 font-bold text-xs flex items-center justify-center gap-2 transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed">
                         <i data-lucide="scale" class="w-4 h-4 text-violet-600"></i>
                         <span id="btn-second-opinion-label">⚖️ Segunda Opinião (Auditar com a Outra IA)</span>
                     </button>
@@ -351,7 +354,8 @@
         const oldModel = localStorage.getItem('estudo_gemini_model') || '';
         let savedGroqKey = localStorage.getItem('estudo_key_groq') || (oldProvider === 'groq' && oldKey ? oldKey : '');
         let savedGeminiKey = localStorage.getItem('estudo_key_gemini') || (oldProvider === 'gemini' && oldKey ? oldKey : '');
-        let savedGroqModel = localStorage.getItem('estudo_model_groq') || (oldProvider === 'groq' && oldModel ? oldModel : 'openai/gpt-oss-20b');
+        let savedGroqModel = localStorage.getItem('estudo_model_groq') || (oldProvider === 'groq' && oldModel ? oldModel : 'llama-3.3-70b-versatile');
+        if (savedGroqModel === 'openai/gpt-oss-20b') savedGroqModel = 'llama-3.3-70b-versatile';
         let savedGeminiModel = localStorage.getItem('estudo_model_gemini') || (oldProvider === 'gemini' && oldModel ? oldModel : 'gemini-3.8-flash');
         if (savedGeminiModel === 'gemini-2.5-flash' || savedGeminiModel === 'gemini-2.5-flash-lite' || savedGeminiModel === 'gemini-2.0-flash') savedGeminiModel = 'gemini-3.8-flash';
 
@@ -365,6 +369,7 @@
             keys: { groq: savedGroqKey, gemini: savedGeminiKey },
             models: { groq: savedGroqModel, gemini: savedGeminiModel },
             autoFallback: localStorage.getItem('estudo_auto_fallback') !== 'false',
+            rateLimitedProviders: {},
             supabaseUrl: localStorage.getItem('estudo_supabase_url') || '',
             supabaseKey: localStorage.getItem('estudo_supabase_key') || '',
             cloudConnected: false,
@@ -480,7 +485,7 @@
             toast.classList.remove('hidden', 'bg-slate-900', 'bg-emerald-700', 'bg-rose-700', 'bg-amber-700');
             toast.classList.add(type === 'success' ? 'bg-emerald-700' : type === 'error' ? 'bg-rose-700' : type === 'warning' ? 'bg-amber-700' : 'bg-slate-900');
             clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 5000);
+            window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 6000);
         }
         function autoResizeTextarea(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(155, el.scrollHeight) + 'px'; if (el.value.trim()) document.getElementById('btn-clear-input')?.classList.remove('hidden'); }
         function autoResizeFollowup(el) { if (!el) return; el.style.height = 'auto'; el.style.height = Math.max(88, el.scrollHeight) + 'px'; }
@@ -602,6 +607,24 @@
             showToast(`Matéria "${subj}" limpa!`, 'success');
         }
 
+        function isRateLimitError(errMsg) {
+            const m = String(errMsg || '').toLowerCase();
+            return m.includes('429') || m.includes('rate limit') || m.includes('quota') || m.includes('tokens per day') || m.includes('tokens per minute') || m.includes('exceeded') || m.includes('resource_exhausted');
+        }
+        function markProviderRateLimited(provider) {
+            appState.rateLimitedProviders[provider] = Date.now();
+            updateApiStatusBadge();
+            updateAuditButtonState();
+        }
+        function isProviderLimitedRecently(provider) {
+            const ts = appState.rateLimitedProviders[provider];
+            if (!ts) return false;
+            if (Date.now() - ts > 15 * 60 * 1000) {
+                delete appState.rateLimitedProviders[provider];
+                return false;
+            }
+            return true;
+        }
         function selectProvider(provider, persist = true) {
             appState.provider = provider;
             if (persist) localStorage.setItem('estudo_ai_provider', provider);
@@ -616,8 +639,8 @@
         }
         function quickToggleProvider() {
             if (!appState.keys.groq && !appState.keys.gemini) { switchTab('settings'); return; }
-            if (appState.provider === 'groq' && appState.keys.gemini) { selectProvider('gemini', true); showToast('Alternado para Gemini!', 'success'); }
-            else if (appState.provider === 'gemini' && appState.keys.groq) { selectProvider('groq', true); showToast('Alternado para Groq!', 'success'); }
+            if (appState.provider === 'groq' && appState.keys.gemini) { selectProvider('gemini', true); showToast('Alternado para Google Gemini!', 'success'); }
+            else if (appState.provider === 'gemini' && appState.keys.groq) { selectProvider('groq', true); showToast('Alternado para Groq Cloud!', 'success'); }
             else switchTab('settings');
         }
         function toggleInputVisibility(id) { const el = document.getElementById(id); if (el) el.type = el.type === 'password' ? 'text' : 'password'; }
@@ -625,24 +648,54 @@
             const groqKey = (document.getElementById('api-key-groq')?.value || '').trim(), geminiKey = (document.getElementById('api-key-gemini')?.value || '').trim();
             if (!groqKey && !geminiKey) { showToast('Cole pelo menos uma chave.', 'warning'); return; }
             appState.keys.groq = groqKey; appState.keys.gemini = geminiKey;
-            appState.models.groq = document.getElementById('model-select-groq')?.value || 'openai/gpt-oss-20b';
+            appState.models.groq = document.getElementById('model-select-groq')?.value || 'llama-3.3-70b-versatile';
             appState.models.gemini = document.getElementById('model-select-gemini')?.value || 'gemini-3.8-flash';
             appState.autoFallback = document.getElementById('auto-fallback-check')?.checked ?? true;
+            appState.rateLimitedProviders = {};
             localStorage.setItem('estudo_key_groq', groqKey); localStorage.setItem('estudo_key_gemini', geminiKey);
             localStorage.setItem('estudo_model_groq', appState.models.groq); localStorage.setItem('estudo_model_gemini', appState.models.gemini);
             localStorage.setItem('estudo_auto_fallback', String(appState.autoFallback));
             selectProvider(appState.provider, true);
+            updateAuditButtonState();
             showToast('Chaves salvas!', 'success');
         }
-        function updateApiStatusBadge() {
+        function updateApiStatusBadge(forcedProvider = null) {
             const badge = document.getElementById('api-status-badge');
             if (!badge) return;
-            if (appState.keys[appState.provider]) {
-                badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 cursor-pointer';
-                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${appState.provider === 'groq' ? '⚡ Groq' : '✨ Gemini'}${appState.keys.groq && appState.keys.gemini ? ' ⇄' : ''}`;
+            const activeProv = forcedProvider || appState.provider;
+            if (appState.keys[activeProv]) {
+                const limited = isProviderLimitedRecently(activeProv);
+                const label = activeProv === 'groq' ? '⚡ Groq' : '✨ Gemini';
+                const swapIcon = (appState.keys.groq && appState.keys.gemini) ? ' ⇄' : '';
+                if (limited) {
+                    badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1 cursor-pointer';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> ${label} (Limite)${swapIcon}`;
+                } else {
+                    badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 cursor-pointer';
+                    badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${label}${swapIcon}`;
+                }
             } else {
                 badge.className = 'text-[11px] font-bold px-2.5 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1 cursor-pointer';
                 badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500"></span> API';
+            }
+        }
+        function updateAuditButtonState() {
+            const btn = document.getElementById('btn-second-opinion');
+            const lbl = document.getElementById('btn-second-opinion-label');
+            if (!btn || !lbl) return;
+            const firstProvider = appState.lastProviderUsed || appState.provider;
+            const secondProvider = firstProvider === 'groq' ? 'gemini' : 'groq';
+            const secondName = secondProvider === 'groq' ? 'Groq' : 'Google Gemini';
+
+            if (!appState.keys[secondProvider]) {
+                btn.disabled = true;
+                lbl.textContent = `⚖️ Segunda Opinião (Configure chave ${secondName} nos Ajustes)`;
+            } else if (isProviderLimitedRecently(secondProvider)) {
+                btn.disabled = true;
+                lbl.textContent = `⏳ Segunda Opinião indisponível (${secondName} atingiu limite)`;
+            } else {
+                btn.disabled = false;
+                lbl.textContent = `⚖️ Segunda Opinião (Auditar com ${secondName})`;
             }
         }
 
@@ -708,7 +761,7 @@ REGRAS CRÍTICAS:
 3. Cite a tentativa e o nível de confiança do aluno no Diagnóstico sem alterar o gabarito.
 4. FIDELIDADE LEGAL: NUNCA invente ou chute número de artigo de lei (ex.: a Lei 9.784/99 só vai até o art. 70). Se não tiver certeza absoluta do número exato do artigo, cite apenas o nome da lei ou o princípio jurídico sem inventar numeração.`;
         }
-           
+
         async function analyzeQuestion() {
             const extraText = (document.getElementById('user-prompt-text')?.value || '').trim();
             const isLesson = appState.studyMode === 'lesson';
@@ -725,13 +778,23 @@ REGRAS CRÍTICAS:
             let userPrompt = isLesson
                 ? `Dê uma AULA COMPLETA E PROGRESSIVA seguindo esta estrutura Markdown:\nMATERIA: [Disciplina] - [Tema]\nRESUMO_ENUNCIADO: Aula: [Título]\n### 🎓 Conceito Central & Visão Geral\n### 📚 Explicação Progressiva\n### ⚖️ Diferenças Importantes\n### 🧠 Treino Rápido (Certo ou Errado)\n### 💬 Pausa para Compreensão\n\nTema:\n${extraText}`
                 : `<raciocinio>Analise cada alternativa independentemente.</raciocinio>\nMATERIA: [Disciplina] - [Tópico]\nRESUMO_ENUNCIADO: [Resumo]\n${userAttempt ? `### 🧑‍🎓 Diagnóstico da Sua Tentativa\nResponda de forma limpa e direta (NUNCA copie ou mostre instruções entre parênteses na tela): compare o gabarito com a tentativa "${userAttempt}" (confiança "${confidenceLevel}"). Se acertou, comece com **✅ VOCÊ ACERTOU!**; se errou, comece com **❌ VOCÊ ERROU!**. Em seguida, adicione **🧠 Gatilho Mental:** com uma frase curta e direta para lembrar a regra na prova.\n` : ''}### 🎯 Gabarito & Ideia Central\n### 🔍 Raio-X das Alternativas\n- ✅ **Item Correto:** ...\n- ❌ **Item Incorreto:** ...\n### 📊 Quadro Esquematizado\n> ⚠️ **Pegadinha de Banca:** ...\n\nQuestão:\n${extraText}${userAttempt ? `\nTentativa: ${userAttempt} (${confidenceLevel})` : ''}`;
+
             let streamStarted = false, lastRenderTime = 0;
             try {
-                const rawResponse = await callAIWithRetry(userPrompt, appState.currentFile, (partialText) => {
+                const { text: rawResponse, providerUsed } = await callAIWithRetry(userPrompt, appState.currentFile, (partialText) => {
                     const { subject, cleanMarkdown } = extractSubjectAndCleanText(partialText);
-                    if (!streamStarted && cleanMarkdown.trim().length > 15) { streamStarted = true; loading?.classList.add('hidden'); workspace?.classList.remove('hidden'); }
+                    if (!streamStarted && partialText.trim().length > 10) {
+                        streamStarted = true;
+                        loading?.classList.add('hidden');
+                        workspace?.classList.remove('hidden');
+                        contentEl.innerHTML = '<p class="text-xs text-indigo-500 animate-pulse font-medium">Analisando alternativas e fundamentos legais...</p>';
+                    }
                     const now = Date.now();
-                    if (streamStarted && now - lastRenderTime > 90) { lastRenderTime = now; if (badgeEl && subject !== 'Geral') badgeEl.textContent = subject; renderVisualMarkdown(cleanMarkdown, contentEl); }
+                    if (streamStarted && cleanMarkdown.trim().length > 10 && now - lastRenderTime > 180) {
+                        lastRenderTime = now;
+                        if (badgeEl && subject !== 'Geral') badgeEl.textContent = subject;
+                        renderVisualMarkdown(cleanMarkdown, contentEl);
+                    }
                 }, buildSystemRules());
 
                 const { subject, summary, cleanMarkdown } = extractSubjectAndCleanText(rawResponse);
@@ -742,12 +805,12 @@ REGRAS CRÍTICAS:
                 appState.currentUserAttempt = userAttempt;
                 appState.currentConfidenceLevel = userAttempt ? confidenceLevel : '';
                 appState.lastQuestionPrompt = extraText || summary || 'Questão/Material enviado';
-                appState.lastProviderUsed = appState.keys[appState.provider] ? appState.provider : (appState.keys.groq ? 'groq' : 'gemini');
+                appState.lastProviderUsed = providerUsed;
                 appState.deepDiveAssets = [];
 
-                const otherName = appState.lastProviderUsed === 'groq' ? 'Google Gemini' : 'Groq';
-                const auditLbl = document.getElementById('btn-second-opinion-label');
-                if (auditLbl) auditLbl.textContent = `⚖️ Segunda Opinião (Auditar com ${otherName})`;
+                const pill = document.getElementById('response-provider-pill');
+                if (pill) pill.textContent = providerUsed === 'groq' ? '⚡ Respondido por Groq' : '✨ Respondido por Gemini';
+                updateAuditButtonState();
 
                 if (badgeEl) badgeEl.textContent = subject;
                 if (document.getElementById('subject-edit-input')) document.getElementById('subject-edit-input').value = subject;
@@ -765,16 +828,27 @@ REGRAS CRÍTICAS:
 
         async function compareWithOtherAI() {
             if (!appState.currentRawAnalysis) return;
-            const firstProvider = appState.lastProviderUsed || appState.provider;
+            const firstProvider = appState.lastProviderUsed;
             const secondProvider = firstProvider === 'groq' ? 'gemini' : 'groq';
             const firstName = firstProvider === 'groq' ? 'Groq' : 'Google Gemini';
             const secondName = secondProvider === 'groq' ? 'Groq' : 'Google Gemini';
 
+            if (firstProvider === secondProvider) {
+                showToast('A auditoria exige uma segunda IA diferente da que respondeu.', 'warning');
+                return;
+            }
             if (!appState.keys[secondProvider]) {
-                showToast(`Salve também sua chave do ${secondName} nos Ajustes para comparar.`, 'warning');
+                showToast(`Salve também sua chave do ${secondName} nos Ajustes para auditar.`, 'warning');
                 switchTab('settings');
                 return;
             }
+            if (isProviderLimitedRecently(secondProvider)) {
+                showToast(`${secondName} atingiu o limite recentemente. Aguarde antes de auditar.`, 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-second-opinion');
+            if (btn) btn.disabled = true;
 
             const container = document.getElementById('deep-dive-container');
             const loaderId = 'audit-loader-' + Date.now();
@@ -822,7 +896,14 @@ ${appState.currentRawAnalysis}`;
                 await autoSaveToNotebook();
             } catch (err) {
                 document.getElementById(loaderId)?.remove();
-                showToast(`Erro ao consultar ${secondName}: ${err.message}`, 'error');
+                if (isRateLimitError(err.message)) {
+                    markProviderRateLimited(secondProvider);
+                    showToast(`⚠️ ${secondName} atingiu o limite de uso agora. Auditoria cancelada (não usamos a mesma IA).`, 'warning');
+                } else {
+                    showToast(`Erro ao consultar ${secondName}: ${err.message}`, 'error');
+                }
+            } finally {
+                updateAuditButtonState();
             }
         }
 
@@ -891,8 +972,8 @@ ${appState.currentRawAnalysis}`;
 
             if (provider === 'groq') {
                 if (fileObj && fileObj.mimeType === 'application/pdf') throw new Error('GROQ_UNSUPPORTED_PDF');
-                const preferred = appState.models.groq || 'openai/gpt-oss-20b';
-                const modelsToTry = fileObj ? ['meta-llama/llama-4-scout-17b-16e-instruct'] : [preferred, 'llama-3.3-70b-versatile'];
+                const preferred = appState.models.groq || 'llama-3.3-70b-versatile';
+                const modelsToTry = fileObj ? ['meta-llama/llama-4-scout-17b-16e-instruct'] : Array.from(new Set([preferred, 'llama-3.3-70b-versatile']));
                 const errors = [];
                 for (const modelName of modelsToTry) {
                     const userContent = fileObj ? [{ type: 'text', text: promptText }, { type: 'image_url', image_url: { url: `data:${fileObj.mimeType};base64,${fileObj.base64}` } }] : promptText;
@@ -901,15 +982,20 @@ ${appState.currentRawAnalysis}`;
                         const res = await fetchWithTimeout('https://api.groq.com/openai/v1/chat/completions', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                           body: JSON.stringify({ model: modelName, messages, max_tokens: 2200, stream: Boolean(onChunk) })
+                            body: JSON.stringify({ model: modelName, messages, max_tokens: 2200, stream: Boolean(onChunk) })
                         }, 25000);
                         if (!res.ok) {
                             const errJson = await res.json().catch(() => ({}));
-                            errors.push(`${modelName}: ${errJson?.error?.message || 'HTTP ' + res.status}`);
+                            const msg = errJson?.error?.message || 'HTTP ' + res.status;
+                            errors.push(`${modelName} (${res.status}): ${msg}`);
+                            if (res.status === 429) markProviderRateLimited('groq');
                             continue;
                         }
                         const text = await readOpenAIStream(res, onChunk);
-                        if (text) return text;
+                        if (text) {
+                            delete appState.rateLimitedProviders['groq'];
+                            return text;
+                        }
                     } catch (e) {
                         errors.push(`${modelName}: ${e.name === 'AbortError' ? 'Timeout 25s' : e.message}`);
                         continue;
@@ -939,11 +1025,16 @@ ${appState.currentRawAnalysis}`;
                     }, 35000);
                     if (!res.ok) {
                         const errJson = await res.json().catch(() => ({}));
-                        errors.push(`${modelName}: ${errJson?.error?.message || 'HTTP ' + res.status}`);
+                        const msg = errJson?.error?.message || 'HTTP ' + res.status;
+                        errors.push(`${modelName} (${res.status}): ${msg}`);
+                        if (res.status === 429) markProviderRateLimited('gemini');
                         continue;
                     }
                     const text = await readGeminiStream(res, onChunk);
-                    if (text) return text;
+                    if (text) {
+                        delete appState.rateLimitedProviders['gemini'];
+                        return text;
+                    }
                     errors.push(`${modelName}: resposta vazia`);
                 } catch (e) {
                     errors.push(`${modelName}: ${e.name === 'AbortError' ? 'Timeout 35s' : e.message}`);
@@ -952,17 +1043,55 @@ ${appState.currentRawAnalysis}`;
             }
             throw new Error(errors.join(' | ') || 'Falha no Gemini.');
         }
+
         async function callAIWithRetry(promptText, fileObj = null, onChunk = null, systemInstructionText = '') {
             if (!appState.keys.groq && !appState.keys.gemini) { switchTab('settings'); throw new Error('Configure uma chave de API nos Ajustes.'); }
             const primary = appState.keys[appState.provider] ? appState.provider : (appState.keys.groq ? 'groq' : 'gemini');
             const secondary = primary === 'groq' ? 'gemini' : 'groq';
+            const primaryName = primary === 'groq' ? 'Groq' : 'Google Gemini';
+            const secondaryName = secondary === 'groq' ? 'Groq' : 'Google Gemini';
+
             if (primary === 'groq' && fileObj && fileObj.mimeType === 'application/pdf') {
-                if (appState.keys.gemini) return await callSingleProvider('gemini', promptText, fileObj, onChunk, systemInstructionText);
+                if (appState.keys.gemini) {
+                    showToast('PDF detectado: usando Google Gemini automaticamente.', 'info');
+                    updateApiStatusBadge('gemini');
+                    const text = await callSingleProvider('gemini', promptText, fileObj, onChunk, systemInstructionText);
+                    return { text, providerUsed: 'gemini' };
+                }
                 throw new Error('Configure sua chave Gemini para ler PDFs.');
             }
-            try { return await callSingleProvider(primary, promptText, fileObj, onChunk, systemInstructionText); }
-            catch (err) {
-                if (appState.autoFallback && appState.keys[secondary]) return await callSingleProvider(secondary, promptText, fileObj, onChunk, systemInstructionText);
+
+            try {
+                const text = await callSingleProvider(primary, promptText, fileObj, onChunk, systemInstructionText);
+                updateApiStatusBadge(primary);
+                return { text, providerUsed: primary };
+            } catch (err) {
+                const hitLimit = isRateLimitError(err.message);
+                if (hitLimit) markProviderRateLimited(primary);
+
+                if (appState.autoFallback && appState.keys[secondary]) {
+                    showToast(
+                        hitLimit
+                            ? `⚠️ Limite atingido no ${primaryName}! Alternando automaticamente para ${secondaryName}...`
+                            : `⚠️ Falha no ${primaryName}. Alternando para ${secondaryName}...`,
+                        'warning'
+                    );
+                    selectProvider(secondary, true);
+                    try {
+                        const text = await callSingleProvider(secondary, promptText, fileObj, onChunk, systemInstructionText);
+                        return { text, providerUsed: secondary };
+                    } catch (err2) {
+                        if (isRateLimitError(err2.message)) {
+                            markProviderRateLimited(secondary);
+                            throw new Error(`⛔ Limite diário/cota atingido tanto no ${primaryName} quanto no ${secondaryName}.`);
+                        }
+                        throw err2;
+                    }
+                }
+
+                if (hitLimit) {
+                    throw new Error(`⚠️ Limite atingido no ${primaryName}. ${appState.keys[secondary] ? 'Ative a Alternância Automática ou troque a IA no topo.' : 'Configure a outra chave nos Ajustes ou aguarde.'}`);
+                }
                 throw err;
             }
         }
@@ -980,7 +1109,7 @@ ${appState.currentRawAnalysis}`;
                 : `Crie 3 QUESTÕES INÉDITAS de fixação com gabarito comentado.\n\nContexto:\n${appState.currentRawAnalysis}`;
 
             try {
-                const result = await callAIWithRetry(prompt);
+                const { text: result } = await callAIWithRetry(prompt);
                 document.getElementById(loaderId)?.remove();
                 if (type === 'mindmap') renderMindmapBlock(result, container);
                 else if (type === 'flashcards') renderFlashcardsBlock(result, container);
@@ -1025,7 +1154,7 @@ ${appState.currentRawAnalysis}`;
             const loaderId = 'chat-loader-' + Date.now();
             container.insertAdjacentHTML('beforeend', `<div id="${loaderId}" class="text-xs text-slate-400 italic pl-2">Professor respondendo...</div>`);
             try {
-                const reply = await callAIWithRetry(`Questão / Material Original:\n${appState.lastQuestionPrompt || appState.currentQuestionSummary}\n\nAnálise Anterior:\n${appState.currentRawAnalysis}\n\nDúvida do Aluno: ${question}`, null, null, buildSystemRules());
+                const { text: reply } = await callAIWithRetry(`Questão / Material Original:\n${appState.lastQuestionPrompt || appState.currentQuestionSummary}\n\nAnálise Anterior:\n${appState.currentRawAnalysis}\n\nDúvida do Aluno: ${question}`, null, null, buildSystemRules());
                 document.getElementById(loaderId)?.remove();
                 container.insertAdjacentHTML('beforeend', `<div class="bg-slate-100 border border-slate-200 text-slate-800 text-xs p-3.5 rounded-xl rounded-bl-none mr-4 prose-study">${marked.parse(reply)}</div>`);
                 appState.deepDiveAssets.push({ type: 'chat', title: `Dúvida: ${question}`, content: reply });
@@ -1101,6 +1230,7 @@ ${appState.currentRawAnalysis}`;
             setNoteColor(item.color || 'white');
             const container = document.getElementById('deep-dive-container'); container.innerHTML = '';
             (item.assets || []).forEach(a => { if (a.type === 'mindmap') renderMindmapBlock(a.content, container); else if (a.type === 'flashcards') renderFlashcardsBlock(a.content, container); else container.insertAdjacentHTML('beforeend', `<div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 prose-study text-xs">${marked.parse(a.content)}</div>`); });
+            updateAuditButtonState();
             switchTab('study'); document.getElementById('result-workspace').classList.remove('hidden');
         }
         async function deleteNotebookItem(id) { if (!confirm('Excluir registro?')) return; appState.notebook = appState.notebook.filter(i => i.id !== id); localStorage.setItem('estudo_notebook_v1', JSON.stringify(appState.notebook)); updateNotebookStats(); renderNotebook(); await deleteItemFromCloud(id); }
