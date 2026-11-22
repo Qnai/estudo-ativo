@@ -904,16 +904,23 @@ REGRAS CRÍTICAS:
             container.insertAdjacentHTML('beforeend', `<div id="${loaderId}" class="p-4 rounded-xl border border-violet-200 bg-violet-50/50 flex items-center gap-3"><div class="w-4 h-4 border-2 border-violet-600 border-t-transparent rounded-full animate-spin"></div><span class="text-xs font-semibold text-violet-950">Consultando ${secondName} para auditoria independente...</span></div>`);
 
             const sourceContent = appState.lastQuestionPrompt || appState.currentQuestionSummary;
+           const isLessonAudit = appState.studyMode === 'lesson';
+            const modeInstruction = isLessonAudit
+                ? 'O conteúdo original é uma AULA TEÓRICA. NÃO crie seção "Diagnóstico do Aluno" nem mencione "Tentativa" ou "Nível de Confiança". Foque apenas na precisão jurídica, na lei seca e na correção dos conceitos da aula.'
+                : 'O conteúdo original é uma QUESTÃO/ANÁLISE. Confira o gabarito, as alternativas e a tentativa do aluno (se houver) de forma objetiva.';
+
             const auditPrompt = `Você é AUDITOR INDEPENDENTE DE CONCURSOS PÚBLICOS. Uma primeira IA (${firstName}) analisou o conteúdo abaixo. Resolva de forma totalmente independente e compare seu veredito com o dela.
 
+${modeInstruction}
+
 <raciocinio>
-Analise o enunciado e as alternativas de forma fria e independente.
+Analise o conteúdo de forma fria e independente.
 </raciocinio>
 
 ### ⚖️ Auditoria Cruzada (${secondName} vs. ${firstName})
-- **Veredito:** [Escreva **🤝 CONSENSO** se chegou na mesma alternativa/conclusão, ou **🚨 DIVERGÊNCIA DETECTADA** se encontrou outra resposta]
-- **Gabarito do Auditor (${secondName}):** [Letra / Certo ou Errado]
-- **Análise Comparativa:** [Explique por que concordam OU onde exatamente a primeira IA errou]
+- **Veredito:** [Escreva **🤝 CONSENSO** se o conteúdo estiver correto e alinhado, ou **🚨 DIVERGÊNCIA DETECTADA** se houver erro conceitual, legal ou de gabarito]
+- **Parecer do Auditor (${secondName}):** [Resumo direto da avaliação]
+- **Análise Comparativa:** [Explique por que concordam OU aponte exatamente onde a primeira IA errou e apresente a versão correta]
 
 ---
 CONTEÚDO ORIGINAL:
